@@ -5,3 +5,9 @@ class Action(torch.nn.Module):
         super.__init__()
         self.pos_x = pos_x
         self.pos_y = pos_y
+
+    def feedback(self):
+        pass
+
+    def reward_function(self):
+        pass
