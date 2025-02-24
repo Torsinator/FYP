@@ -1,59 +1,84 @@
 import numpy as np
 import datetime
 import os
-import pickle
+import Resource
+
+generator = np.random.default_rng(0)
 
 class Game:
-    def __init__(self, length, width, resources, agents = []):
-        self.length = length
-        self.width = width
-        self.resources = resources
-        self.grid = np.empty((width, length), dtype='<U2')
+    def __init__(self, rows, cols, num_resources, agents = None):
+        if agents is None:
+            agents = list()
+        self.cols = cols
+        self.rows = rows
+        self.num_resources = num_resources
+        self.resources = list()
+        self.grid = np.full((rows, cols), '.', dtype='<U10')
         self.agents = agents
+        self.time_step = 0
         self.logfile = datetime.datetime.now().strftime("logfile_%Y%m%d_%H%M%S.txt")
 
     def generate(self):
         # Generate positions for the resources
-        for i in range(self.resources):
+        for i in range(1, self.num_resources + 1):
             while True:
-                x_pos = np.random.randint(0, self.width)
-                y_pos = np.random.randint(0, self.length)
+                x_pos = generator.integers(0, self.cols)
+                y_pos = generator.integers(0, self.rows)
                 # Make sure there are no two resources on the same tile
-                if self.grid[x_pos][y_pos] == '':
-                    self.grid[x_pos][y_pos] = "R" + str(i)
-                    print("R" + str(i))
+                if self.grid[y_pos][x_pos] == '.':
+                    self.grid[y_pos][x_pos] = "R" + str(i)
+                    self.resources.append(Resource(i, x_pos, y_pos))
                     break
         print(self.grid)
+        self.log_grid()
 
     def add_agent(self, agent):
         self.agents.append(agent)
+        x_pos = generator.integers(0, self.cols)
+        y_pos = generator.integers(0, self.rows)
+        if self.grid[y_pos][x_pos] == '.':
+            self.grid[y_pos][x_pos] = "A" + str(len(self.agents))
+        else:
+            self.grid[y_pos][x_pos] += "A" + str(len(self.agents))
 
-    def log_game(self):
+
+    def get_log_file(self):
         directory = "logs"
         file_path = os.path.join(directory, self.logfile)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        with open(file_path, "ab") as log:
-            # agent_positions = np.empty(len(self.agents), dtype=np.float32)
-            # for i in range(len(agent_positions)):
-            #     agent_positions[i] = str(self.agents(i).pos_x) + " " + str(self.agents(i).pos_y)
-            # np.savetxt(log, self.grid, fmt='%s', delimiter=' ')
-            # log.write(";")
-            # np.savetxt(log, agent_positions, fmt='%d', delimiter=' ')
-            # log.write("\n")
-            pickle.dump(self, log)
+        return file_path
 
-    def read_all_objects(filename):
-        objects = []
-        with open(filename, 'rb') as file:
-            while True:
-                try:
-                    obj = pickle.load(file)
-                    objects.append(obj)
-                except EOFError:
-                    break
-        return
+    def log_grid(self):
+        file = self.get_log_file()
+        with open(file, "a") as log:
+            log.write(f'{self.time_step} GRID: {self.rows} {self.cols}\n')
+            np.savetxt(log, self.grid, "%2s")
 
-game = Game(5, 5, 3)
-game.generate()
-game.log_game()
+    def log_message(self, message):
+        file = self.get_log_file()
+        with open(file, "a") as log:
+            log.write(f'{self.time_step} MESSAGE: {message}\n')
+
+    def normalise_resource(self, resource_id):
+        return resource_id/self.num_resources
+
+    def check_resource(self, x_pos, y_pos):
+        if x_pos >= self.cols or x_pos < 0 or y_pos >= self.rows or y_pos < 0:
+            return 0
+        if self.grid[y_pos][x_pos] == ".":
+            return 0
+        return self.normalise_resource(int(self.grid[y_pos][x_pos][1:]))
+
+    # [x_pos, y_pos, current, north, south, east, west]
+    def get_observations(self, x_pos, y_pos):
+        x_pos = agent.x
+        y_pos = agent.y
+        current = self.check_resource(x_pos, y_pos)
+        north = self.check_resource(x_pos, y_pos + 1)
+        south = self.check_resource(x_pos, y_pos - 1)
+        east = self.check_resource(x_pos + 1, y_pos)
+        west = self.check_resource(x_pos - 1, y_pos)
+        return np.array([x_pos, y_pos, current, north, south, east, west], dtype=np.float32)
+
+# game.log_game()
