@@ -1,8 +1,9 @@
 from Communicator import Communicator
 from Action import Action
+from Game import Game
 
 class Agent:
-    def __init__(self, communicator, action, game, channel, goal, id):
+    def __init__(self, communicator : Communicator, action, game : Game, channel, goal, id):
         self.communicator = communicator
         self.action = action
         self.game = game
@@ -15,5 +16,7 @@ class Agent:
     def get_display(self):
         return "A{self.id}"
 
+    # Returns move
     def make_turn(self):
-        self.communicator.
+        messages = self.communicator.generate_message_summary()
+        observations = self.game.get_observations()

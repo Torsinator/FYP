@@ -70,8 +70,8 @@ class Game:
             return 0
         return self.normalise_resource(int(self.grid[y_pos][x_pos][1:]))
 
-    # [x_pos, y_pos, current, north, south, east, west]
-    def get_observations(self, x_pos, y_pos):
+    # [timestep, x_pos, y_pos, current, north, south, east, west]
+    def get_observations(self, agent):
         x_pos = agent.x
         y_pos = agent.y
         current = self.check_resource(x_pos, y_pos)
@@ -79,6 +79,12 @@ class Game:
         south = self.check_resource(x_pos, y_pos - 1)
         east = self.check_resource(x_pos + 1, y_pos)
         west = self.check_resource(x_pos - 1, y_pos)
-        return np.array([x_pos, y_pos, current, north, south, east, west], dtype=np.float32)
+        return np.array([self.time_step, x_pos, y_pos, current, north, south, east, west], dtype=np.float32)
+
+    def win(self):
+        for agent in self.agents:
+            if agent.goal != self.grid[agent.y][agent.x]:
+                return False
+        return True
 
 # game.log_game()
