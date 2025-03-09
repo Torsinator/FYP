@@ -1,14 +1,16 @@
 import numpy as np
 import datetime
 import os
-import Resource
+from Resource import Resource
+from Agent import Agent
+from Logger import Logger
 
 generator = np.random.default_rng(0)
 
 class Game:
     def __init__(self, rows, cols, num_resources, agents = None):
         if agents is None:
-            agents = list()
+            agents : list[Agent] = list()
         self.cols = cols
         self.rows = rows
         self.num_resources = num_resources
@@ -52,7 +54,7 @@ class Game:
     def log_grid(self):
         file = self.get_log_file()
         with open(file, "a") as log:
-            log.write(f'{self.time_step} GRID: {self.rows} {self.cols}\n')
+            log.write(f'{self.time_step} GRID: {self.rows} {self.cols}\n{np.str}')
             np.savetxt(log, self.grid, "%2s")
 
     def log_message(self, message):
@@ -71,7 +73,7 @@ class Game:
         return self.normalise_resource(int(self.grid[y_pos][x_pos][1:]))
 
     # [timestep, x_pos, y_pos, current, north, south, east, west]
-    def get_observations(self, agent):
+    def get_observations(self, agent : Agent):
         x_pos = agent.x
         y_pos = agent.y
         current = self.check_resource(x_pos, y_pos)

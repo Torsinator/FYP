@@ -1,11 +1,12 @@
 from Communicator import Communicator
 from Action import Action
 from Game import Game
+from Channel import Channel
 
 class Agent:
-    def __init__(self, communicator : Communicator, action, game : Game, channel, goal, id):
-        self.communicator = communicator
-        self.action = action
+    def __init__(self, id : str, game : Game, channel : Channel, goal : str):
+        self.communicator = Communicator(channel)
+        self.action = Action()
         self.game = game
         self.goal = goal
         self.channel = channel
