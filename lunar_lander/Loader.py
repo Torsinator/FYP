@@ -4,28 +4,24 @@ import custom_lunar_lander
 from gymnasium.wrappers import RecordVideo
 from stable_baselines3 import PPO
 import numpy as np
+from OpenAI_prompt import generate_state
 
 def main():
     # First, create and train the environment without recording.
-    train_env = gym.make("CustomLunarLander-v0", continuous=False)
-    model = PPO("MlpPolicy", train_env, verbose=1, device="cpu", tensorboard_log="./ppo_tensorboard/")
-    model.learn(total_timesteps=2_000_000)
-    train_env.close()  # Close training environment
-
-    model.save("models/last_model")
+    demo_env = gym.make("CustomLunarLander-v0", render_mode="rgb_array", continuous=False)
+    model = PPO.load("models/last_model.zip")
+    model.set_env(demo_env)
 
     # Now, create a new environment for the final demonstration episode.
     video_folder = "./final_video"
     os.makedirs(video_folder, exist_ok=True)
 
-    # For video recording, "render_mode" must be set to "rgb_array".
-    demo_env = gym.make("CustomLunarLander-v0", render_mode="rgb_array", continuous=False)
     # Wrap the environment so that it always records the (only) episode.
     demo_env = RecordVideo(demo_env, video_folder=video_folder,
                            episode_trigger=lambda episode: True)
 
     # Run exactly one episode and record it.
-    obs, info = demo_env.reset(options={"target_state" : np.array([0,0,0,0,0,0], dtype=np.float32)})
+    obs, info = demo_env.reset(options={"target_state" : generate_state("fly to (0, 0.5) with orientation -0.1")})
     done = False
     while not done:
         action, _ = model.predict(obs, deterministic=True)
