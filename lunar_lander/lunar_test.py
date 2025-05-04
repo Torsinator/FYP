@@ -8,8 +8,8 @@ import numpy as np
 def main():
     # First, create and train the environment without recording.
     train_env = gym.make("CustomLunarLander-v0", continuous=False)
-    model = PPO("MlpPolicy", train_env, verbose=1, device="cpu", tensorboard_log="./ppo_tensorboard/")
-    model.learn(total_timesteps=2_000_000)
+    model = PPO("MlpPolicy", train_env, verbose=1, device="cpu")
+    model.learn(total_timesteps=5_000_000)
     train_env.close()  # Close training environment
 
     model.save("models/last_model")

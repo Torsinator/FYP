@@ -352,7 +352,7 @@ class LunarLander(gym.Env, EzPickle):
         self.world.contactListener_keepref = ContactDetector(self)
         self.world.contactListener = self.world.contactListener_keepref
         self.game_over = False
-        self.prev_shaping = None
+        self.prev_loss = None
 
         W = VIEWPORT_W / SCALE
         H = VIEWPORT_H / SCALE
@@ -497,20 +497,30 @@ class LunarLander(gym.Env, EzPickle):
             target_state = np.array([0, 0, 0, 0, 0, 0])
 
         if weights is None:
-            weights = np.array([-1, -0.6, -1, 0, 0.1, 0.1])
+            weights = np.array([-10, -10, -6, -6, -10, 0, 1, 1])
         reward = 0
-        shaping = (
-            weights[0] * np.sqrt((state[0] - target_state[0])**2 + (state[1] - target_state[1])**2)   # distance from target
-            + weights[1] * np.sqrt((state[2] - target_state[2])**2 + (state[3] - target_state[3])**2)  # mangitude of velocity
-            + weights[2] * abs(state[4] - target_state[4])    # angle
-            + weights[3] * abs(state[5] - target_state[5])    # Angular velocity
-            + weights[4] * state[6] # Leg 1 contact
-            + weights[5] * state[7] # Leg 2 contact
+        # shaping = (
+        #     weights[0] * np.sqrt((state[0] - target_state[0])**2 + (state[1] - target_state[1])**2)   # distance from target
+        #     + weights[1] * np.sqrt((state[2] - target_state[2])**2 + (state[3] - target_state[3])**2)  # mangitude of velocity
+        #     + weights[2] * abs(state[4] - target_state[4])    # angle
+        #     + weights[3] * abs(state[5] - target_state[5])    # Angular velocity
+        #     + weights[4] * state[6] # Leg 1 contact
+        #     + weights[5] * state[7] # Leg 2 contact
+        # )  # And ten points for legs contact, the idea is if you
+        loss = (
+            weights[0] * abs(state[0] - target_state[0])   # distance from target
+            + weights[1] * abs(state[1] - target_state[1])   # distance from target
+            + weights[2] * abs(state[2] - target_state[2])  # mangitude of velocity
+            + weights[2] * abs(state[3] - target_state[3])  # mangitude of velocity
+            + weights[3] * abs(state[4] - target_state[4])    # angle
+            + weights[4] * abs(state[5] - target_state[5])    # Angular velocity
+            + weights[5] * state[6] # Leg 1 contact
+            + weights[6] * state[7] # Leg 2 contact
         )  # And ten points for legs contact, the idea is if you
         # lose contact again after landing, you get negative reward
-        if self.prev_shaping is not None:
-            reward = shaping # - self.prev_shaping
-        self.prev_shaping = shaping
+        if self.prev_loss is not None:
+            reward = loss #- self.prev_shaping
+        self.prev_loss = loss
 
         # reward -= (
         #     self.m_power * 0.30
@@ -520,10 +530,10 @@ class LunarLander(gym.Env, EzPickle):
         terminated = False
         if self.game_over or abs(state[0]) >= 1.0 or abs(state[1]) >= 2:
             terminated = True
-            reward = -100
-        if not self.lander.awake:
+            reward = -2000
+        if loss > -1:
             terminated = True
-            reward = +100
+            reward += 1000
         return reward, terminated
 
     def step(self, action):

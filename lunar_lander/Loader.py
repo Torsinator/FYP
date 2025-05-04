@@ -4,7 +4,7 @@ import custom_lunar_lander
 from gymnasium.wrappers import RecordVideo
 from stable_baselines3 import PPO
 import numpy as np
-from OpenAI_prompt import generate_state
+# from OpenAI_prompt import generate_state
 
 def main():
     # First, create and train the environment without recording.
@@ -21,7 +21,7 @@ def main():
                            episode_trigger=lambda episode: True)
 
     # Run exactly one episode and record it.
-    obs, info = demo_env.reset(options={"target_state" : generate_state("fly to (0, 0.5) with orientation -0.1")})
+    obs, info = demo_env.reset(options={"target_state" : np.array([-0.5,0.5,0,-0.3,0,0])})
     done = False
     while not done:
         action, _ = model.predict(obs, deterministic=True)
