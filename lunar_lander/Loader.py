@@ -2,14 +2,15 @@ import os
 import gymnasium as gym
 import custom_lunar_lander
 from gymnasium.wrappers import RecordVideo
-from stable_baselines3 import PPO
+from stable_baselines3.ddpg.ddpg import DDPG
+from stable_baselines3.td3.td3 import TD3
 import numpy as np
 # from OpenAI_prompt import generate_state
 
 def main():
     # First, create and train the environment without recording.
-    demo_env = gym.make("CustomLunarLander-v0", render_mode="rgb_array", continuous=False)
-    model = PPO.load("models/last_model.zip")
+    demo_env = gym.make("CustomLunarLander-v0", render_mode="rgb_array", continuous=True)
+    model = TD3.load("models/last_model")
     model.set_env(demo_env)
 
     # Now, create a new environment for the final demonstration episode.
@@ -21,7 +22,7 @@ def main():
                            episode_trigger=lambda episode: True)
 
     # Run exactly one episode and record it.
-    obs, info = demo_env.reset(options={"target_state" : np.array([-0.5,0.5,0,-0.3,0,0])})
+    obs, info = demo_env.reset(options={"target_state" : np.array([-0,-0,0,0,0,0])})
     done = False
     while not done:
         action, _ = model.predict(obs, deterministic=True)
