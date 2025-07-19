@@ -4,15 +4,16 @@ import custom_lunar_lander
 from gymnasium.wrappers import RecordVideo
 from stable_baselines3.ddpg.ddpg import DDPG
 from stable_baselines3.td3.td3 import TD3
+from stable_baselines3.ppo.ppo import PPO
 import numpy as np
 
 def main():
     # First, create and train the environment without recording.
     train_env = gym.make("CustomLunarLander-v0", continuous=True)
-    model = TD3("MlpPolicy", train_env, learning_rate=0.001, verbose=1)
-    # model = TD3.load("models/last_model")
+    # model = PPO("MlpPolicy", train_env, verbose=1)
+    model = PPO.load("models/last_model")
     model.set_env(train_env)
-    model.learn(total_timesteps=3_000_000)
+    model.learn(total_timesteps=100_000)
     train_env.close()  # Close training environment
 
     model.save("models/last_model")

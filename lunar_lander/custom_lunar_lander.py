@@ -337,7 +337,7 @@ class LunarLander(gym.Env, EzPickle):
         self.world.DestroyBody(self.legs[1])
 
     def _randomise_state(self):
-        self.target_state = [self.np_random.uniform(-0.9, 0.9), self.np_random.uniform(-0.5, 1.2), 0, 0, self.np_random.uniform(-0.5, 0.5), 0]
+        self.target_state = [self.np_random.uniform(-0.9, 0.9), self.np_random.uniform(-0, 1.2), 0, 0, self.np_random.uniform(-0.2, 0.2), 0]
 
     def reset(
         self,
@@ -590,19 +590,13 @@ class LunarLander(gym.Env, EzPickle):
         if self.game_over or abs(state[0]) >= 1.0 or abs(state[1]) >= 2:
             terminated = True
             reward = -2000
-        if loss > -0.01:
+        if loss > -0.05:
             # Consider this complete, move on to next target
             terminated = True
             reward += 1000
-        if loss > -0.2:
-            # Consider this complete, move on to next target
+        if loss > -0.1:
+            # Give some intermediate reward
             reward += 2
-        if loss > -0.3:
-            # Consider this complete, move on to next target
-            reward += 1
-        # if loss > -1.5:
-        #     # Give some intermediate reward
-        #     reward += 300
         # if loss > -2:
         #     # Give some intermediate reward
         #     # self._randomise_state()
