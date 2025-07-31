@@ -57,6 +57,30 @@ MAIN_ENGINE_Y_LOCATION = (
 VIEWPORT_W = 600
 VIEWPORT_H = 400
 
+# import matplotlib.pyplot as plt
+
+# coords = [(x / SCALE, y / SCALE) for x, y in LANDER_POLY]
+
+# # Unpack
+# x_vals, y_vals = zip(*coords)
+
+# # Scatter plot
+# plt.scatter(x_vals, y_vals, color='blue', marker='o', label='Data points')
+
+# # Or line plot
+# plt.plot(x_vals, y_vals, color='red', linestyle='--', label='Line connection')
+
+# # Labels and legend
+# plt.title("Scatter and Line Plot of Coordinate Pairs")
+# plt.xlabel("X")
+# plt.ylabel("Y")
+# plt.legend()
+# plt.grid(True)
+
+# plt.show()
+
+
+
 
 class ContactDetector(contactListener):
     def __init__(self, env):
@@ -407,6 +431,7 @@ class LunarLander(gym.Env, EzPickle):
                 restitution=0.0,
             ),  # 0.99 bouncy
         )
+        print("TW lander inertia", self.lander.inertia)
         self.lander.color1 = (128, 102, 230)
         self.lander.color2 = (77, 77, 128)
 
