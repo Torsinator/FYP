@@ -2,19 +2,16 @@ import os
 import gymnasium as gym
 import custom_lunar_lander
 from gymnasium.wrappers import RecordVideo
-from stable_baselines3.ddpg.ddpg import DDPG
-from stable_baselines3.td3.td3 import TD3
-from stable_baselines3.ppo.ppo import PPO
 import numpy as np
 import do_mpc
 import casadi as ca
 
-# === Your Dynamics Model ===
+# === Dynamics Model ===
 def create_lander_model():
     model_type = 'continuous'
     model = do_mpc.model.Model(model_type)
 
-    # Example states: replace with your model's actual state variables
+    # States:
     x = model.set_variable('_x', 'x', shape=(1,1))
     y = model.set_variable('_x', 'y', shape=(1,1))
     vx = model.set_variable('_x', 'vx', shape=(1,1))
@@ -31,7 +28,7 @@ def create_lander_model():
     a = 1   # side length
     I = 1 / 6 * m * a**2    # moment of inertia (assumes square)
 
-    # Example dynamics: replace with your identified equations!
+    # Differential Equations
     model.set_rhs('x', vx)
     model.set_rhs('y', vy)
     model.set_rhs('vx', main_thrust * 13 * 2 / m  * ca.sin(theta) + side_thrust * 0.6 / m * ca.cos(theta))
@@ -58,7 +55,7 @@ setup_mpc = {
 }
 mpc.set_param(**setup_mpc)
 
-# Example cost: stabilize to (0,0,0,...)
+# Set target state here - will be LLM
 target_state = np.array([0,5,0,0,0,0], dtype=np.float32)
 
 mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[4] - model.x['theta'])**2
@@ -102,10 +99,12 @@ done = False
 # Map Gym state to MPC state format
 def gym_state_to_mpc(state):
     x, y, vx, vy, theta, omega, *_ = state
+    # Multipliers from Lunar Lander
     return np.array([x * 10, y * 6.666, vx * 5, vy * 7.5, theta, omega * 2.5])
 
 mpc.x0 = gym_state_to_mpc(state)
 mpc.set_initial_guess()
+
 # === Control Loop ===
 while not done:
     print("State input to MPC:", gym_state_to_mpc(state[6:]))
