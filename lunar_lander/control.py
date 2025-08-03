@@ -5,6 +5,30 @@ from gymnasium.wrappers import RecordVideo
 import numpy as np
 import do_mpc
 import casadi as ca
+import matplotlib.pyplot as plt
+
+MAIN_POWER = 100
+SIDE_POWER = 20
+GRAVITY = -10
+dt = 0.02
+
+def main_thrust_fn(main_thrust):
+    # thrust = (0.5 * ca.tanh(10*(2* main_thrust - 1))+ 0.5)*(0.5 * ca.fmax(0, 2*main_thrust - 1) + 0.5)
+    return main_thrust * MAIN_POWER
+
+def smooth_step(x, threshold=0.5, sharpness=20):
+    abs_x = ca.sqrt(x**2)  # Smooth abs
+    return 1 / (1 + ca.exp(-sharpness * (abs_x - threshold)))
+
+
+def side_thrust_fn(side_thrust):
+    # activation = smooth_step(side_thrust, threshold=0.5, sharpness=20)
+    return side_thrust * SIDE_POWER
+
+x = np.linspace(-2, 2 ,100)
+y = main_thrust_fn(x)
+plt.plot(x, y)
+plt.show()
 
 # === Dynamics Model ===
 def create_lander_model():
@@ -23,18 +47,25 @@ def create_lander_model():
     main_thrust = model.set_variable('_u', 'main_thrust')
     side_thrust = model.set_variable('_u', 'side_thrust')
 
-    m = 5   # mass
-    h = 14 / 30   # distance of thruster from COM
+    m = 4.816666603088379   # mass
+    h = 14.0 / 30   # distance of thruster from COM
     a = 1   # side length
-    I = 1 / 6 * m * a**2    # moment of inertia (assumes square)
+    # I = 1 / 6 * m * a**2    # moment of inertia (assumes square)
+    I = 0.8333148956298828
 
     # Differential Equations
     model.set_rhs('x', vx)
     model.set_rhs('y', vy)
-    model.set_rhs('vx', main_thrust * 13 * 2 / m  * ca.sin(theta) + side_thrust * 0.6 / m * ca.cos(theta))
-    model.set_rhs('vy', side_thrust * 0.6 / m  * ca.sin(theta) + main_thrust * 13 * 2 / m * ca.cos(theta) - 10) # might be negative side thrust
+    F_body_x = side_thrust_fn(side_thrust)
+    F_body_y = main_thrust_fn(main_thrust)
+
+    F_world_x = ca.cos(theta) * F_body_x - ca.sin(theta) * F_body_y
+    F_world_y = ca.sin(theta) * F_body_x + ca.cos(theta) * F_body_y
+
+    model.set_rhs('vx', F_world_x / m)
+    model.set_rhs('vy', F_world_y / m + GRAVITY)  # assuming g = 10 m/s²
     model.set_rhs('theta', omega)
-    model.set_rhs('omega', -h / I * side_thrust * 0.6)
+    model.set_rhs('omega', -h / I * side_thrust_fn(side_thrust))
 
     model.setup()
     return model
@@ -48,30 +79,30 @@ model = create_lander_model()
 # === Setup MPC Controller ===
 mpc = do_mpc.controller.MPC(model)
 setup_mpc = {
-    'n_horizon': 20,
-    't_step': 0.02,
+    'n_horizon': 100,
+    't_step': dt,
     'n_robust': 1,
     'store_full_solution': True,
 }
 mpc.set_param(**setup_mpc)
 
 # Set target state here - will be LLM
-target_state = np.array([0,5,0,0,0,0], dtype=np.float32)
+target_state = np.array([5,5,0,0,0,0], dtype=np.float32)
 
+# mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[2] - model.x['vx'])**2 + (target_state[3] - model.x['vy'])**2 + (target_state[4] - model.x['theta'])**2 + (target_state[5] - model.x['omega'])**2
 mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[4] - model.x['theta'])**2
-# mterm = (target_state[1] - model.x['y'])**2
 lterm = mterm
 mpc.set_objective(mterm=mterm, lterm=lterm)
-mpc.set_rterm(main_thrust=0.01, side_thrust=0.01)
+mpc.set_rterm(main_thrust=0.01, side_thrust=10)
 
 # Lower bounds on states:
 mpc.bounds['lower','_x', 'x'] = -10
 mpc.bounds['lower','_x', 'y'] = 0
-mpc.bounds['lower','_x', 'theta'] = -2*np.pi
+mpc.bounds['lower','_x', 'theta'] = -np.pi
 # Upper bounds on states
 mpc.bounds['upper','_x', 'x'] = 10
 mpc.bounds['upper','_x', 'y'] = 1.5 * 6.666
-mpc.bounds['upper','_x', 'theta'] = 2*np.pi
+mpc.bounds['upper','_x', 'theta'] = np.pi
 
 # Lower bounds on inputs:
 mpc.bounds['lower','_u', 'main_thrust'] = 0
@@ -115,12 +146,22 @@ while not done:
 
     # Apply to Gym simulator
     gym_action = np.array([main_thrust, side_thrust])
-    # gym_action = np.array([0.15, 0])
+    # gym_action = np.array([0, -1])
     state, reward, terminated, truncated, info = demo_env.step(gym_action)
     done = terminated or truncated
 
 demo_env.close()
 print(f"Final demonstration video recorded and saved in: {video_folder}")
+
+from matplotlib import rcParams
+rcParams['axes.grid'] = True
+rcParams['font.size'] = 18
+
+import matplotlib.pyplot as plt
+fig, ax, graphics = do_mpc.graphics.default_plot(mpc.data, figsize=(16,9))
+graphics.plot_results()
+graphics.reset_axes()
+plt.show()
 
 # fig, ax = plt.subplots(2, sharex=True, figsize=(16,9))
 # fig.align_ylabels()

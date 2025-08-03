@@ -37,8 +37,8 @@ if TYPE_CHECKING:
 FPS = 50
 SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as well
 
-MAIN_ENGINE_POWER = 13.0
-SIDE_ENGINE_POWER = 0.6
+MAIN_ENGINE_POWER = 100
+SIDE_ENGINE_POWER = 20
 
 INITIAL_RANDOM = 1000.0  # Set 1500 to make game harder
 
@@ -431,7 +431,9 @@ class LunarLander(gym.Env, EzPickle):
                 restitution=0.0,
             ),  # 0.99 bouncy
         )
+        print("TW lander mass", self.lander.mass)
         print("TW lander inertia", self.lander.inertia)
+        print("TW lander height", self.lander.fixtures[0].shape)
         self.lander.color1 = (128, 102, 230)
         self.lander.color2 = (77, 77, 128)
 
@@ -617,7 +619,7 @@ class LunarLander(gym.Env, EzPickle):
             reward = -2000
         if loss > -0.05:
             # Consider this complete, move on to next target
-            terminated = True
+            # terminated = True
             reward += 1000
         if loss > -0.1:
             # Give some intermediate reward
@@ -693,6 +695,7 @@ class LunarLander(gym.Env, EzPickle):
             if self.continuous:
                 self.m_power = (np.clip(action[0], 0.0, 1.0) + 1.0) * 0.5  # 0.5..1.0
                 assert self.m_power >= 0.5 and self.m_power <= 1.0
+                self.m_power = np.clip(action[0], 0.0, 1.0)
             else:
                 self.m_power = 1.0
 
@@ -716,7 +719,7 @@ class LunarLander(gym.Env, EzPickle):
                     impulse_pos[1],
                     self.m_power,
                 )
-                p.ApplyLinearImpulse(
+                p.ApplyForce(
                     (
                         ox * MAIN_ENGINE_POWER * self.m_power,
                         oy * MAIN_ENGINE_POWER * self.m_power,
@@ -724,14 +727,16 @@ class LunarLander(gym.Env, EzPickle):
                     impulse_pos,
                     True,
                 )
-            self.lander.ApplyLinearImpulse(
-                (-ox * MAIN_ENGINE_POWER * self.m_power, -oy * MAIN_ENGINE_POWER * self.m_power),
+            print("TW fx", tip[0] * MAIN_ENGINE_POWER * self.m_power)
+            print("TW fy", tip[1] * MAIN_ENGINE_POWER * self.m_power)
+            self.lander.ApplyForce(
+                (-tip[0] * MAIN_ENGINE_POWER * self.m_power, tip[1] * MAIN_ENGINE_POWER * self.m_power),
                 impulse_pos,
                 True,
             )
 
         self.s_power = 0.0
-        if (self.continuous and np.abs(action[1]) > 0.5) or (
+        if (self.continuous and np.abs(action[1]) > 0) or (
             not self.continuous and action in [1, 3]
         ):
             # Orientation/Side engines
@@ -739,6 +744,7 @@ class LunarLander(gym.Env, EzPickle):
                 direction = np.sign(action[1])
                 self.s_power = np.clip(np.abs(action[1]), 0.5, 1.0)
                 assert self.s_power >= 0.5 and self.s_power <= 1.0
+                np.clip(np.abs(action[1]), 0, 1)
             else:
                 # action = 1 is left, action = 3 is right
                 direction = action - 2
@@ -757,13 +763,13 @@ class LunarLander(gym.Env, EzPickle):
             # This causes the position of the thrust on the body of the lander to change, depending on the orientation of the lander.
             # This in turn results in an orientation dependent torque being applied to the lander.
             impulse_pos = (
-                self.lander.position[0] + ox - tip[0] * 17 / SCALE,
+                self.lander.position[0] + ox - tip[0] * SIDE_ENGINE_HEIGHT / SCALE,
                 self.lander.position[1] + oy + tip[1] * SIDE_ENGINE_HEIGHT / SCALE,
             )
             if self.render_mode is not None:
                 # particles are just a decoration, with no impact on the physics, so don't add them when not rendering
                 p = self._create_particle(0.7, impulse_pos[0], impulse_pos[1], self.s_power)
-                p.ApplyLinearImpulse(
+                p.ApplyForce(
                     (
                         ox * SIDE_ENGINE_POWER * self.s_power,
                         oy * SIDE_ENGINE_POWER * self.s_power,
@@ -771,8 +777,8 @@ class LunarLander(gym.Env, EzPickle):
                     impulse_pos,
                     True,
                 )
-            self.lander.ApplyLinearImpulse(
-                (-ox * SIDE_ENGINE_POWER * self.s_power, -oy * SIDE_ENGINE_POWER * self.s_power),
+            self.lander.ApplyForce(
+                (-direction * side[0] * SIDE_ENGINE_POWER * self.s_power, direction * side[1] * SIDE_ENGINE_POWER * self.s_power),
                 impulse_pos,
                 True,
             )
@@ -1037,12 +1043,12 @@ class LunarLanderContinuous:
 register(
     id="CustomLunarLander-v0",
     entry_point="custom_lunar_lander:LunarLander",
-    max_episode_steps=500,
+    max_episode_steps=1000,
     reward_threshold=-0.1,
     kwargs={
         "render_mode": None,
         "continuous": False,
-        "gravity": -10.0,
+        "gravity": -10,
         "enable_wind": False,
         "wind_power": 2.0,
         "turbulence_power": 1.5,
