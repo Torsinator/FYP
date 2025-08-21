@@ -12,6 +12,42 @@ SIDE_POWER = 20
 GRAVITY = -10
 dt = 0.02
 
+def setup_mpc(model, target_state):
+    # === Setup MPC Controller ===
+    mpc = do_mpc.controller.MPC(model)
+    setup_mpc = {
+        'n_horizon': 120,
+        't_step': dt,
+        'n_robust': 1,
+        'store_full_solution': True,
+    }
+    mpc.set_param(**setup_mpc)
+    # mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[2] - model.x['vx'])**2 + (target_state[3] - model.x['vy'])**2 + (target_state[4] - model.x['theta'])**2 + (target_state[5] - model.x['omega'])**2
+    mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[4] - model.x['theta'])**2
+    lterm = mterm
+    mpc.set_objective(mterm=mterm, lterm=lterm)
+    mpc.set_rterm(main_thrust=100, side_thrust=100)
+
+    # Lower bounds on states:
+    mpc.bounds['lower','_x', 'x'] = -10
+    mpc.bounds['lower','_x', 'y'] = 0
+    mpc.bounds['lower','_x', 'theta'] = -np.pi
+    # Upper bounds on states
+    mpc.bounds['upper','_x', 'x'] = 10
+    mpc.bounds['upper','_x', 'y'] = 1.5 * 6.666
+    mpc.bounds['upper','_x', 'theta'] = np.pi
+
+    # Lower bounds on inputs:
+    mpc.bounds['lower','_u', 'main_thrust'] = 0
+    mpc.bounds['lower','_u', 'side_thrust'] = -1
+    # Upper bounds on inputs:
+    mpc.bounds['upper','_u', 'main_thrust'] = 1
+    mpc.bounds['upper','_u', 'side_thrust'] = 1
+
+    mpc.setup()
+
+    return mpc
+
 def main_thrust_fn(main_thrust):
     # thrust = (0.5 * ca.tanh(10*(2* main_thrust - 1))+ 0.5)*(0.5 * ca.fmax(0, 2*main_thrust - 1) + 0.5)
     return main_thrust * MAIN_POWER
@@ -76,42 +112,39 @@ def lunarify_target_state(state):
 
 model = create_lander_model()
 
-# === Setup MPC Controller ===
-mpc = do_mpc.controller.MPC(model)
-setup_mpc = {
-    'n_horizon': 100,
-    't_step': dt,
-    'n_robust': 1,
-    'store_full_solution': True,
-}
-mpc.set_param(**setup_mpc)
-
-# Set target state here - will be LLM
-target_state = np.array([5,5,0,0,0,0], dtype=np.float32)
-
-# mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[2] - model.x['vx'])**2 + (target_state[3] - model.x['vy'])**2 + (target_state[4] - model.x['theta'])**2 + (target_state[5] - model.x['omega'])**2
-mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[4] - model.x['theta'])**2
-lterm = mterm
-mpc.set_objective(mterm=mterm, lterm=lterm)
-mpc.set_rterm(main_thrust=0.01, side_thrust=10)
-
-# Lower bounds on states:
-mpc.bounds['lower','_x', 'x'] = -10
-mpc.bounds['lower','_x', 'y'] = 0
-mpc.bounds['lower','_x', 'theta'] = -np.pi
-# Upper bounds on states
-mpc.bounds['upper','_x', 'x'] = 10
-mpc.bounds['upper','_x', 'y'] = 1.5 * 6.666
-mpc.bounds['upper','_x', 'theta'] = np.pi
-
-# Lower bounds on inputs:
-mpc.bounds['lower','_u', 'main_thrust'] = 0
-mpc.bounds['lower','_u', 'side_thrust'] = -1
-# Upper bounds on inputs:
-mpc.bounds['upper','_u', 'main_thrust'] = 1
-mpc.bounds['upper','_u', 'side_thrust'] = 1
-
-mpc.setup()
+states = np.array(
+  [
+  [-0.70000, 0.8, 0, 0, 0, 0],
+  [-0.65000, 0.5, 0.20000, -6.28319, -0, 0.2],
+  [-0.60000, 0.2, 0.20000, 0.2, 0, 10.00000],
+  [-0.55000, 0.5, 0.20000, 6.28319, 0, 0.2],
+  [-0.50000, 0.8, 0.20000, 0.2, 0, -10.00000],
+  [-0.45000, 0.5, 0.20000, -6.28319, -0, 0.2],
+  [-0.40000, 0.2, 0.20000, 0.2, 0, 10.00000],
+  [-0.35000, 0.5, 0.20000, 6.28319, 0, 0.2],
+  [-0.30000, 0.8, 0.20000, 0.2, 0, -10.00000],
+  [-0.25000, 0.5, 0.20000, -6.28319, -0, 0.2],
+  [-0.20000, 0.2, 0.20000, 0.2, 0, 10.00000],
+  [-0.15000, 0.5, 0.20000, 6.28319, 0, 0.2],
+  [-0.10000, 0.8, 0.20000, 0.2, 0, -10.00000],
+  [-0.05000, 0.5, 0.20000, -6.28319, -0, 0.2],
+  [0.00000, 0.2, 0.20000, 0.2, 0, 10.00000],
+  [0.05000, 0.5, 0.20000, 6.28319, 0, 0.2],
+  [0.10000, 0.8, 0.20000, 0.2, 0, -10.00000],
+  [0.15000, 0.5, 0.20000, -6.28319, -0, 0.2],
+  [0.20000, 0.2, 0.20000, 0.2, 0, 10.00000],
+  [0.25000, 0.5, 0.20000, 6.28319, 0, 0.2],
+  [0.30000, 0.8, 0.20000, 0.2, 0, -10.00000],
+  [0.35000, 0.5, 0.20000, -6.28319, -0, 0.2],
+  [0.40000, 0.2, 0.20000, 0.2, 0, 10.00000],
+  [0.45000, 0.5, 0.20000, 6.28319, 0, 0.2],
+  [0.50000, 0.8, 0.20000, 0.2, 0, -10.00000],
+  [0.55000, 0.5, 0.20000, -6.28319, -0, 0.2],
+  [0.60000, 0.2, 0.20000, 0.2, 0, 10.00000],
+  [0.65000, 0.5, 0.20000, 6.28319, 0, 0.2],
+  [0.70000, 0.8, 0.20000, 0.2, 0, -10.00000]
+  ]
+)
 
 # Now, create a new environment for the final demonstration episode.
 video_folder = "./final_video"
@@ -124,8 +157,9 @@ demo_env = RecordVideo(demo_env, video_folder=video_folder,
                         episode_trigger=lambda episode: True, name_prefix="MPC-controller")
 
 # Run exactly one episode and record it.
-state, info = demo_env.reset(options={"target_state" : lunarify_target_state(target_state)})
-done = False
+# state, info = demo_env.reset(options={"target_state" : lunarify_target_state(target_state)})
+state, info = demo_env.reset(options={"target_state" : states[0]})
+
 
 # Map Gym state to MPC state format
 def gym_state_to_mpc(state):
@@ -133,35 +167,38 @@ def gym_state_to_mpc(state):
     # Multipliers from Lunar Lander
     return np.array([x * 10, y * 6.666, vx * 5, vy * 7.5, theta, omega * 2.5])
 
-mpc.x0 = gym_state_to_mpc(state)
-mpc.set_initial_guess()
+for target_state in states:
+    done = False
+    demo_env.unwrapped.set_target_state(np.array(target_state, dtype=np.float32))
+    mpc = setup_mpc(model, gym_state_to_mpc(target_state))
+    mpc.x0 = gym_state_to_mpc(state)
+    mpc.set_initial_guess()
+    # === Control Loop ===
+    while not done:
+        print("State input to MPC:", gym_state_to_mpc(state[6:]))
+        action = mpc.make_step(gym_state_to_mpc(state[6:]))  # Get optimal control action
+        main_thrust = float(action[0])
+        side_thrust = float(action[1])
+        print(main_thrust, side_thrust)
 
-# === Control Loop ===
-while not done:
-    print("State input to MPC:", gym_state_to_mpc(state[6:]))
-    action = mpc.make_step(gym_state_to_mpc(state[6:]))  # Get optimal control action
-    main_thrust = float(action[0])
-    side_thrust = float(action[1])
-    print(main_thrust, side_thrust)
-
-    # Apply to Gym simulator
-    gym_action = np.array([main_thrust, side_thrust])
-    # gym_action = np.array([0, -1])
-    state, reward, terminated, truncated, info = demo_env.step(gym_action)
-    done = terminated or truncated
+        # Apply to Gym simulator
+        gym_action = np.array([main_thrust, side_thrust])
+        # gym_action = np.array([0, -1])
+        state, reward, terminated, truncated, info = demo_env.step(gym_action)
+        done = terminated or truncated or abs(reward) > 999
 
 demo_env.close()
 print(f"Final demonstration video recorded and saved in: {video_folder}")
 
-from matplotlib import rcParams
-rcParams['axes.grid'] = True
-rcParams['font.size'] = 18
+# from matplotlib import rcParams
+# rcParams['axes.grid'] = True
+# rcParams['font.size'] = 18
 
-import matplotlib.pyplot as plt
-fig, ax, graphics = do_mpc.graphics.default_plot(mpc.data, figsize=(16,9))
-graphics.plot_results()
-graphics.reset_axes()
-plt.show()
+# import matplotlib.pyplot as plt
+# fig, ax, graphics = do_mpc.graphics.default_plot(mpc.data, figsize=(16,9))
+# graphics.plot_results()
+# graphics.reset_axes()
+# plt.show()
 
 # fig, ax = plt.subplots(2, sharex=True, figsize=(16,9))
 # fig.align_ylabels()

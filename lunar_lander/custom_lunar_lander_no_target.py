@@ -292,22 +292,13 @@ class LunarLander(gym.Env, EzPickle):
                 # these are bounds for position
                 # realistically the environment should have ended
                 # long before we reach more than 50% outside
-                -2.5,  # x coordinate
-                -2.5,  # y coordinate
+                -5,  # x coordinate
+                -5,  # y coordinate
                 # velocity bounds is 5x rated speed
-                -10.0,
-                -10.0,
+                -20.0,
+                -20.0,
                 -2 * math.pi,
-                -10.0,
-                -2.5,  # x coordinate
-                -2.5,  # y coordinate
-                # velocity bounds is 5x rated speed
-                -10.0,
-                -10.0,
-                -2 * math.pi,
-                -10.0,
-                -0.0,
-                -0.0,
+                -20.0
             ]
         ).astype(np.float32)
         high = np.array(
@@ -315,27 +306,18 @@ class LunarLander(gym.Env, EzPickle):
                 # these are bounds for position
                 # realistically the environment should have ended
                 # long before we reach more than 50% outside
-                2.5,  # x coordinate
-                2.5,  # y coordinate
+                5,  # x coordinate
+                5,  # y coordinate
                 # velocity bounds is 5x rated speed
-                10.0,
-                10.0,
+                20.0,
+                20.0,
                 2 * math.pi,
-                10.0,
-                2.5,  # x coordinate
-                2.5,  # y coordinate
-                # velocity bounds is 5x rated speed
-                10.0,
-                10.0,
-                2 * math.pi,
-                10.0,
-                1.0,
-                1.0,
+                20.0
             ]
         ).astype(np.float32)
 
         # useful range is -1 .. +1, but spikes can be higher
-        self.observation_space = spaces.Box(low, high, shape=(14,))
+        self.observation_space = spaces.Box(low, high, shape=(6,))
 
         if self.continuous:
             # Action is two floats [main engine, left-right engines].
@@ -620,7 +602,7 @@ class LunarLander(gym.Env, EzPickle):
         if self.game_over or abs(state[0]) >= 1.0 or abs(state[1]) >= 2:
             terminated = True
             reward = -2000
-        if loss > -0.05:
+        if loss > -0.16:
             # Consider this complete, move on to next target
             terminated = True
             reward += 1000
@@ -804,11 +786,12 @@ class LunarLander(gym.Env, EzPickle):
         ])
         assert len(self.state) == 8
         self.prev_reward, terminated = self.reward(self.state, self.target_state)
-        self.long_state = np.concatenate((self.target_state, np.array(self.state, dtype=np.float32)), dtype=np.float32)
+        self.error = self.target_state - np.array(self.state[:-2], dtype=np.float32)
+        print(self.error)
         if self.render_mode == "human":
             self.render()
         # truncation=False as the time limit is handled by the `TimeLimit` wrapper added during `make`
-        return self.long_state, self.prev_reward, terminated, False, {}
+        return self.error, self.prev_reward, terminated, False, {}
 
     def render(self):
         if self.render_mode is None:
@@ -1050,8 +1033,8 @@ class LunarLanderContinuous:
 
 register(
     id="CustomLunarLander-v0",
-    entry_point="custom_lunar_lander:LunarLander",
-    max_episode_steps=1000,
+    entry_point="custom_lunar_lander_no_target:LunarLander",
+    max_episode_steps=50000,
     reward_threshold=-0.05,
     kwargs={
         "render_mode": None,
