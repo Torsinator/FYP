@@ -298,13 +298,13 @@ class LunarLander(gym.Env, EzPickle):
                 -20.0,
                 -20.0,
                 -2 * math.pi,
-                -20.0,
-                0,  # weights
-                0,
-                0,
-                0,
-                0,
-                0
+                -20.0
+                # 0,  # weights
+                # 0,
+                # 0,
+                # 0,
+                # 0,
+                # 0
             ]
         ).astype(np.float32)
         high = np.array(
@@ -318,18 +318,18 @@ class LunarLander(gym.Env, EzPickle):
                 20.0,
                 20.0,
                 2 * math.pi,
-                20.0,
-                1,  # weights
-                1,
-                1,
-                1,
-                1,
-                1
+                20.0
+                # 1,  # weights
+                # 1,
+                # 1,
+                # 1,
+                # 1,
+                # 1
             ]
         ).astype(np.float32)
 
         # useful range is -1 .. +1, but spikes can be higher
-        self.observation_space = spaces.Box(low, high, shape=(12,))
+        self.observation_space = spaces.Box(low, high, shape=(6,))
 
         if self.continuous:
             # Action is two floats [main engine, left-right engines].
@@ -828,7 +828,7 @@ class LunarLander(gym.Env, EzPickle):
         if self.render_mode == "human":
             self.render()
         # truncation=False as the time limit is handled by the `TimeLimit` wrapper added during `make`
-        return np.concatenate((self.error, self.weights), dtype=np.float32), self.prev_reward, terminated, False, {}
+        return self.weights * self.error, self.prev_reward, terminated, False, {}
 
     def render(self):
         if self.render_mode is None:
