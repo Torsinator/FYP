@@ -298,7 +298,13 @@ class LunarLander(gym.Env, EzPickle):
                 -20.0,
                 -20.0,
                 -2 * math.pi,
-                -20.0
+                -20.0,
+                0,  # weights
+                0,
+                0,
+                0,
+                0,
+                0
             ]
         ).astype(np.float32)
         high = np.array(
@@ -312,12 +318,18 @@ class LunarLander(gym.Env, EzPickle):
                 20.0,
                 20.0,
                 2 * math.pi,
-                20.0
+                20.0,
+                1,  # weights
+                1,
+                1,
+                1,
+                1,
+                1
             ]
         ).astype(np.float32)
 
         # useful range is -1 .. +1, but spikes can be higher
-        self.observation_space = spaces.Box(low, high, shape=(6,))
+        self.observation_space = spaces.Box(low, high, shape=(12,))
 
         if self.continuous:
             # Action is two floats [main engine, left-right engines].
@@ -343,7 +355,10 @@ class LunarLander(gym.Env, EzPickle):
         self.world.DestroyBody(self.legs[1])
 
     def _randomise_state(self):
-        self.target_state = [self.np_random.uniform(-0.8, 0.8), self.np_random.uniform(-0, 1.2), 0, 0, self.np_random.uniform(-0.2, 0.2), 0]
+        self.target_state = list(self.np_random.normal(loc=self.state[:6], scale=0.2))
+
+    def _randomise_weights(self):
+        self.weights = list(self.np_random.uniform(0, 1, size=(6,)))
 
     def reset(
         self,
@@ -472,12 +487,33 @@ class LunarLander(gym.Env, EzPickle):
 
         self.drawlist = [self.lander] + self.legs
 
+        pos = self.lander.position
+        vel = self.lander.linearVelocity
+
+        self.state = np.array([
+            (pos.x - VIEWPORT_W / SCALE / 2) / (VIEWPORT_W / SCALE / 2),
+            (pos.y - (self.helipad_y + LEG_DOWN / SCALE)) / (VIEWPORT_H / SCALE / 2),
+            vel.x * (VIEWPORT_W / SCALE / 2) / FPS,
+            vel.y * (VIEWPORT_H / SCALE / 2) / FPS,
+            self.lander.angle,
+            20.0 * self.lander.angularVelocity / FPS,
+            1.0 if self.legs[0].ground_contact else 0.0,
+            1.0 if self.legs[1].ground_contact else 0.0,
+        ])
+
         if options is not None and "target_state" in options:
             self.target_state = options["target_state"]
         else:
             # Alternatively, you could randomize the target here.
             # For demonstration, we'll stick to the default zero vector.
             self._randomise_state()
+
+        if options is not None and "weights" in options:
+            self.weights = options["weights"]
+        else:
+            # Alternatively, you could randomize the target here.
+            # For demonstration, we'll stick to the default zero vector.
+            self._randomise_weights()
         if self.render_mode == "human":
             self.render()
         return self.step(np.array([0, 0]) if self.continuous else 0)[0], {}
@@ -562,7 +598,7 @@ class LunarLander(gym.Env, EzPickle):
 
         if weights is None:
             # weights = np.array([-10, -10, -10, -10, -10, -10, 1, 1])
-            weights = np.array([-1, -1, -1, -1, -1, -1, 0, 0])
+            weights = np.array([1, 1, 1, 1, 1, 1])
         reward = 0
         # shaping = (
         #     weights[0] * np.sqrt((state[0] - target_state[0])**2 + (state[1] - target_state[1])**2)   # distance from target
@@ -583,11 +619,11 @@ class LunarLander(gym.Env, EzPickle):
         #     + weights[6] * state[7] # Leg 2 contact
         # ) # And ten points for legs contact, the idea is if you
         loss = -(
-            np.sqrt((state[0] - target_state[0]) ** 2 + (state[1] - target_state[1]) ** 2  + (state[2] - target_state[2]) ** 2 + (state[3] - target_state[3]) ** 2 + (state[4] - target_state[4]) ** 2  + (state[5] - target_state[5]) ** 2)
+            np.sqrt(np.sum(weights * (state[:6] - target_state) ** 2))
         ) # And ten points for legs contact, the idea is if you
-        loss = -(
-            np.sqrt((state[0] - target_state[0]) ** 2 + (state[1] - target_state[1]) ** 2 + (state[4] - target_state[4]) ** 2)
-        )
+        # loss = -(
+        #     np.sqrt((state[0] - target_state[0]) ** 2 + (state[1] - target_state[1]) ** 2 + (state[4] - target_state[4]) ** 2)
+        # )
         # lose contact again after landing, you get negative reward
         if self.prev_loss is not None:
             reward = loss #+ 0.99 * loss - self.prev_loss #- self.prev_loss
@@ -602,7 +638,7 @@ class LunarLander(gym.Env, EzPickle):
         if self.game_over or abs(state[0]) >= 1.0 or abs(state[1]) >= 2:
             terminated = True
             reward = -2000
-        if loss > -0.16:
+        if loss > -0.1:
             # Consider this complete, move on to next target
             terminated = True
             reward += 1000
@@ -616,6 +652,7 @@ class LunarLander(gym.Env, EzPickle):
         #     # Give some intermediate reward
         #     # self._randomise_state()
         #     reward += 100
+        print(f"TW reward: {reward}, weights: {weights}")
         return reward, terminated
 
 
@@ -785,13 +822,13 @@ class LunarLander(gym.Env, EzPickle):
             1.0 if self.legs[1].ground_contact else 0.0,
         ])
         assert len(self.state) == 8
-        self.prev_reward, terminated = self.reward(self.state, self.target_state)
+        self.prev_reward, terminated = self.reward(self.state, self.target_state, self.weights)
         self.error = self.target_state - np.array(self.state[:-2], dtype=np.float32)
-        print(self.error)
+        # print(self.error)
         if self.render_mode == "human":
             self.render()
         # truncation=False as the time limit is handled by the `TimeLimit` wrapper added during `make`
-        return self.error, self.prev_reward, terminated, False, {}
+        return np.concatenate((self.error, self.weights), dtype=np.float32), self.prev_reward, terminated, False, {}
 
     def render(self):
         if self.render_mode is None:
@@ -943,6 +980,9 @@ class LunarLander(gym.Env, EzPickle):
     def set_target_state(self, target):
         self.target_state = target
 
+    def set_weights(self, weights):
+        self.weights = weights
+
 def heuristic(env, s):
     """
     The heuristic for
@@ -1034,7 +1074,7 @@ class LunarLanderContinuous:
 register(
     id="CustomLunarLander-v0",
     entry_point="custom_lunar_lander_no_target:LunarLander",
-    max_episode_steps=50000,
+    max_episode_steps=1000,
     reward_threshold=-0.05,
     kwargs={
         "render_mode": None,

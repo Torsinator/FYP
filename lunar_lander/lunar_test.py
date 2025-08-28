@@ -11,7 +11,7 @@ def main():
     # First, create and train the environment without recording.
     train_env = gym.make("CustomLunarLander-v0", continuous=True)
     # model = PPO("MlpPolicy", train_env, verbose=1)
-    model = PPO.load("models/last_model_errors_only")
+    model = PPO.load("models/last_model")
     model.set_env(train_env)
     model.learn(total_timesteps=500_000)
     train_env.close()  # Close training environment

@@ -46,7 +46,12 @@ def main():
   [0.65000, 0.5, 0, 0, 0, 0],
   [0.70000, 0.8, 0, 0, 0, -0]
   ]
-)
+    )
+
+    n = len(states)  # number of copies
+    row = np.array([1, 1, 0, 0, 0, 0])
+
+    weights = np.tile(row, (n, 1))
 
     # Now, create a new environment for the final demonstration episode.
     video_folder = "./final_video"
@@ -57,7 +62,7 @@ def main():
                            episode_trigger=lambda episode: True)
 
     # Run exactly one episode and record it.
-    obs, info = demo_env.reset(options={"target_state" : states[0]})
+    obs, info = demo_env.reset(options={"target_state" : states[0], "weights": weights[0]})
     # obs, info = demo_env.reset(options={"target_state" : generate_state("Spin at 0.1 rad/s at (0, 0.5)")})
     # done = False
     # while not done:
@@ -72,6 +77,7 @@ def main():
     for target_state in states:
         done = False
         demo_env.unwrapped.set_target_state(np.array(target_state, dtype=np.float32))
+        demo_env.unwrapped.set_weights(weights[0])
         # === Control Loop ===
         while not done:
             action, _ = model.predict(obs, deterministic=True)
