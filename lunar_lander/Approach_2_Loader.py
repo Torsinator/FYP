@@ -73,20 +73,30 @@ def main():
         [0.70000, 0.8, 0, 0, 0, 0],
     ])
 
+    n = len(states)  # number of copies
+    # row = np.array([0, 0, 1, 1, 1, 1])
+    row = np.array([1, 1, 0, 0, 0, 0])
+
+    weights = np.tile(row, (n, 1))
+
     # Interpolate to per-timestep targets
     states_interp = interpolate_states(states, EPISODE_LENGTH_SECONDS, HZ)
+
+    weights_interp = interpolate_states(weights, EPISODE_LENGTH_SECONDS, HZ)
 
     # Record video
     video_folder = "./final_video"
     os.makedirs(video_folder, exist_ok=True)
     demo_env = RecordVideo(demo_env, video_folder=video_folder, episode_trigger=lambda episode: True)
 
-    obs, info = demo_env.reset(options={"target_state": states_interp[0]})
+    obs, info = demo_env.reset(options={"target_state": states_interp[0], "weights": weights_interp[0]})
 
     # Step through dense interpolated targets
-    for target_state in states_interp:
+    for i in range(len(states_interp)):
         done = False
-        demo_env.unwrapped.set_target_state(np.array(target_state, dtype=np.float32))
+        demo_env.unwrapped.set_target_state(np.array(states_interp[i], dtype=np.float32))
+        print(weights_interp[i])
+        demo_env.unwrapped.set_weights(np.array(weights_interp[i], dtype=np.float32))
         while not done:
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, terminated, truncated, info = demo_env.step(action)

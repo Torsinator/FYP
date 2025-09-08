@@ -11,7 +11,7 @@ from OpenAI_prompt import generate_state
 def main():
     # First, create and train the environment without recording.
     demo_env = gym.make("CustomLunarLander-v0", render_mode="rgb_array", continuous=True)
-    model = PPO.load("models/last_model")
+    model = PPO.load("models/ppo_lunar_max_reward")
     model.set_env(demo_env)
 
     states = np.array(

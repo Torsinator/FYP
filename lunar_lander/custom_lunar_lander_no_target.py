@@ -12,6 +12,7 @@ from gymnasium.utils import EzPickle
 from gymnasium.utils.step_api_compatibility import step_api_compatibility
 from gymnasium.envs.registration import register
 import cv2
+from scipy.special import softmax
 
 
 try:
@@ -299,12 +300,6 @@ class LunarLander(gym.Env, EzPickle):
                 -20.0,
                 -2 * math.pi,
                 -20.0
-                # 0,  # weights
-                # 0,
-                # 0,
-                # 0,
-                # 0,
-                # 0
             ]
         ).astype(np.float32)
         high = np.array(
@@ -319,12 +314,6 @@ class LunarLander(gym.Env, EzPickle):
                 20.0,
                 2 * math.pi,
                 20.0
-                # 1,  # weights
-                # 1,
-                # 1,
-                # 1,
-                # 1,
-                # 1
             ]
         ).astype(np.float32)
 
@@ -354,11 +343,14 @@ class LunarLander(gym.Env, EzPickle):
         self.world.DestroyBody(self.legs[0])
         self.world.DestroyBody(self.legs[1])
 
+    def _normalise(self, x):
+        return x / np.sum(x)
+
     def _randomise_state(self):
         self.target_state = list(self.np_random.normal(loc=self.state[:6], scale=0.2))
 
     def _randomise_weights(self):
-        self.weights = list(self.np_random.uniform(0, 1, size=(6,)))
+        self.weights = list(self._normalise(self.np_random.uniform(0, 1, size=(6,))))
 
     def reset(
         self,
@@ -509,7 +501,7 @@ class LunarLander(gym.Env, EzPickle):
             self._randomise_state()
 
         if options is not None and "weights" in options:
-            self.weights = options["weights"]
+            self.weights = self._normalise(options["weights"])
         else:
             # Alternatively, you could randomize the target here.
             # For demonstration, we'll stick to the default zero vector.
@@ -598,7 +590,7 @@ class LunarLander(gym.Env, EzPickle):
 
         if weights is None:
             # weights = np.array([-10, -10, -10, -10, -10, -10, 1, 1])
-            weights = np.array([1, 1, 1, 1, 1, 1])
+            weights = self._normalise(np.array([1, 1, 1, 1, 1, 1]))
         reward = 0
         # shaping = (
         #     weights[0] * np.sqrt((state[0] - target_state[0])**2 + (state[1] - target_state[1])**2)   # distance from target
@@ -619,7 +611,7 @@ class LunarLander(gym.Env, EzPickle):
         #     + weights[6] * state[7] # Leg 2 contact
         # ) # And ten points for legs contact, the idea is if you
         loss = -(
-            np.sqrt(np.sum(weights * (state[:6] - target_state) ** 2))
+            np.sqrt(np.sum(weights * (state[:6] - target_state) ** 2 / self.observation_space.high[:6]))
         ) # And ten points for legs contact, the idea is if you
         # loss = -(
         #     np.sqrt((state[0] - target_state[0]) ** 2 + (state[1] - target_state[1]) ** 2 + (state[4] - target_state[4]) ** 2)
@@ -638,11 +630,11 @@ class LunarLander(gym.Env, EzPickle):
         if self.game_over or abs(state[0]) >= 1.0 or abs(state[1]) >= 2:
             terminated = True
             reward = -2000
-        if loss > -0.1:
+        if loss > -0.01:
             # Consider this complete, move on to next target
             terminated = True
             reward += 1000
-        if loss > -0.1:
+        if loss > -0.02:
             # Give some intermediate reward
             reward += 2
         # if loss > -0.2:
@@ -828,6 +820,7 @@ class LunarLander(gym.Env, EzPickle):
         if self.render_mode == "human":
             self.render()
         # truncation=False as the time limit is handled by the `TimeLimit` wrapper added during `make`
+        print("TW: werror ", self.weights * self.error)
         return self.weights * self.error, self.prev_reward, terminated, False, {}
 
     def render(self):
@@ -981,7 +974,7 @@ class LunarLander(gym.Env, EzPickle):
         self.target_state = target
 
     def set_weights(self, weights):
-        self.weights = weights
+        self.weights = self._normalise(weights)
 
 def heuristic(env, s):
     """

@@ -35,7 +35,7 @@ def interpolate_states(states, episode_length, hz):
 
 def main():
     demo_env = gym.make("CustomLunarLander-v0", render_mode="rgb_array", continuous=True)
-    model = PPO.load("models/last_model")
+    model = PPO.load("models/last_model_weights_obs")
     model.set_env(demo_env)
 
     # Your original keyframes
