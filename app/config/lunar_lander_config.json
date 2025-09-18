@@ -1,0 +1,10 @@
+{
+    "context" : "You are a rocket",
+    "states" : "[x, y, x velocity, y velocity, angle (rads), angular velocity (rads/sec)]",
+    "bounds" : 
+    {
+        "max": "[2.5, 2.5, 10.0, 10.0, 2pi, -10.0]",
+        "min": "[-2.5, 0, -10.0, -10.0, -2pi, -10.0]"
+    },
+    "current_state" : "[0, 1.4, 0, 0, 0, 0]"
+}
