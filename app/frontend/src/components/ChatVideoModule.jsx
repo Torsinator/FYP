@@ -1,13 +1,13 @@
 import React, { useState, useRef } from "react";
 import api from "../api";
+import "../css/ChatVideoModule.css";
 
-// Define the states
 const STATES = {
-  IDLE: "idle",
-  WAITING_RESPONSE: "waiting_response",
-  RESPONSE_RECEIVED: "response_received",
-  CLARIFY: "clarify_needed",
-  TRAJECTORY_READY: "video_ready",
+    IDLE: "idle",
+    WAITING_RESPONSE: "waiting_response",
+    RESPONSE_RECEIVED: "response_received",
+    CLARIFY: "clarify_needed",
+    TRAJECTORY_READY: "video_ready",
 };
 
 function ChatVideoModule() {
@@ -19,34 +19,31 @@ function ChatVideoModule() {
     const videoRef = useRef();
 
     const sendChat = async () => {
-    if (!chatInput || (state !== STATES.IDLE && state !== STATES.CLARIFY)) return;
-    setState(STATES.WAITING_RESPONSE);
+        if (!chatInput || (state !== STATES.IDLE && state !== STATES.CLARIFY)) return;
+        setState(STATES.WAITING_RESPONSE);
 
-    try {
-        // Send chat to backend
-        const res = await api.post("/command", { message: chatInput });
+        try {
+            const res = await api.post("/command", { message: chatInput });
 
-        if (res.data.clarify) {
-        setState(STATES.CLARIFY);
-        return;
+            if (res.data.clarify) {
+                setState(STATES.CLARIFY);
+                return;
+            }
+
+            setResponse(res.data);
+            setState(STATES.RESPONSE_RECEIVED);
+
+            const videoRes = await api.get(`/video/${res.data.video_path}`, {
+                responseType: "blob",
+            });
+            const url = URL.createObjectURL(videoRes.data);
+            setVideoUrl(url);
+            setState(STATES.TRAJECTORY_READY);
+        } catch (err) {
+            console.error(err);
+            setState(STATES.IDLE);
         }
-
-        setResponse(res.data);
-        setState(STATES.RESPONSE_RECEIVED);
-
-        // Fetch the generated video
-        const videoRes = await api.get(`/video/${res.data.video_path}`, {
-            responseType: "blob",
-        });
-        const url = URL.createObjectURL(videoRes.data);
-        setVideoUrl(url);
-        setState(STATES.TRAJECTORY_READY);
-    } catch (err) {
-        console.error(err);
-        setState(STATES.IDLE);
-    }
     };
-
 
     const reset = () => {
         if (videoUrl) URL.revokeObjectURL(videoUrl);
@@ -54,56 +51,48 @@ function ChatVideoModule() {
         setChatInput("");
         setResponse(null);
         setVideoUrl(null);
+        api.get("/reset");
     };
 
-  return (
-    <div>
-      {/* Chat input */}
-      {(state === STATES.IDLE || state === STATES.WAITING_RESPONSE || state === STATES.CLARIFY) && (
-        <div>
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") sendChat();
-            }}
-            disabled={state !== STATES.IDLE && state !== STATES.CLARIFY}
-          />
-          <button onClick={sendChat} disabled={state !== STATES.IDLE && state !== STATES.CLARIFY}>
-            Send
-          </button>
-        </div>
-      )}
+    return (
+        <div className="chat-video-container">
+            <div className="chat-input-section">
+                <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") sendChat();
+                    }}
+                    disabled={state !== STATES.IDLE && state !== STATES.CLARIFY}
+                />
+                <button onClick={sendChat} disabled={state !== STATES.IDLE && state !== STATES.CLARIFY}>
+                    Send
+                </button>
+            </div>
 
-        {/* Backend response */}
-      {(state === STATES.WAITING_RESPONSE) && (
-        <div>
-          <p><strong>Waiting for trajectory</strong></p>
-        </div>
-      )}
+            {state === STATES.WAITING_RESPONSE && (
+                <div className="waiting">Waiting for trajectory...</div>
+            )}
 
-      {/* Backend response */}
-      {(state !== STATES.IDLE && state !== STATES.WAITING_RESPONSE) && (
-        <div>
-          <p><strong>Response:</strong></p>
-          <p>Reasoning: {response.reasoning}</p>
-          <p>States: {response.states}</p>
-          <p>Weights: {response.weights}</p>
-        </div>
-      )}
+            {(state !== STATES.IDLE && state !== STATES.WAITING_RESPONSE) && response && (
+                <div className="response-section">
+                    <p><strong>Response:</strong></p>
+                    <p><em>Reasoning:</em> {response.reasoning}</p>
+                    <p><em>States:</em> {response.states}</p>
+                    <p><em>Weights:</em> {response.weights}</p>
+                </div>
+            )}
 
-      {/* Video */}
-      {state === STATES.TRAJECTORY_READY && videoUrl && (
-        <div>
-          <video ref={videoRef} src={videoUrl} controls width="640" height="360" />
-        </div>
-      )}
+            {state === STATES.TRAJECTORY_READY && videoUrl && (
+                <div className="video-section">
+                    <video ref={videoRef} src={videoUrl} controls width="640" height="360" />
+                </div>
+            )}
 
-      {/* Reset button */}
-        <button onClick={reset}>Reset</button>
-    </div>
-  );
+            <button className="reset-button" onClick={reset}>Reset</button>
+        </div>
+    );
 }
 
 export default ChatVideoModule;

@@ -127,14 +127,18 @@ def reset():
     global env
     global new_episode_flag
     env = new_episode(env_name)
-    new_episode_flag = False
+    new_episode_flag = True
     return {}
 
 @app.post("/command", response_model=ChatResponse)
 def command(command : ChatRequest):
     global new_episode_flag
     clarify, reasoning, traj, weights = interpretor.give_command(command.message, new_episode_flag)
-    response = ChatResponse(clarify=clarify, reasoning=reasoning, states=traj, weights=weights, video_path=f"{env.name_prefix}-episode{env.episode_id}.mp4")
+    path = f"{env.name_prefix}-episode"
+    if f"{env.episode_id}"[0] != "-":
+        path += "-"
+    path += f"{env.episode_id}.mp4"
+    response = ChatResponse(clarify=clarify, reasoning=reasoning, states=traj, weights=weights, video_path=path)
     if not clarify:
         traj = ast.literal_eval(traj)
         traj.insert(0, ast.literal_eval(env_cfg.get("current_state")))
