@@ -610,9 +610,10 @@ class LunarLander(gym.Env, EzPickle):
         #     + weights[5] * state[6] # Leg 1 contact
         #     + weights[6] * state[7] # Leg 2 contact
         # ) # And ten points for legs contact, the idea is if you
-        loss = -(
-            np.sqrt(np.sum(weights * (state[:6] - target_state) ** 2 / self.observation_space.high[:6]))
-        ) # And ten points for legs contact, the idea is if you
+        # loss = -(
+        #     np.sqrt(np.sum(weights * (state[:6] - target_state) ** 2))
+        # ) # And ten points for legs contact, the idea is if you
+        loss = -1
         # loss = -(
         #     np.sqrt((state[0] - target_state[0]) ** 2 + (state[1] - target_state[1]) ** 2 + (state[4] - target_state[4]) ** 2)
         # )
@@ -644,7 +645,7 @@ class LunarLander(gym.Env, EzPickle):
         #     # Give some intermediate reward
         #     # self._randomise_state()
         #     reward += 100
-        print(f"TW reward: {reward}, weights: {weights}")
+        # print(f"TW reward: {reward}, weights: {weights}")
         return reward, terminated
 
 
@@ -820,8 +821,8 @@ class LunarLander(gym.Env, EzPickle):
         if self.render_mode == "human":
             self.render()
         # truncation=False as the time limit is handled by the `TimeLimit` wrapper added during `make`
-        print("TW: werror ", self.weights * self.error)
-        return self.weights * self.error, self.prev_reward, terminated, False, {}
+        # print("TW: werror ", self.weights * self.error)
+        return self.state, self.prev_reward, terminated, False, {}
 
     def render(self):
         if self.render_mode is None:

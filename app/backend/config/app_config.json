@@ -1,0 +1,13 @@
+{
+    "environment" : 
+    {
+        "name" : "CustomLunarLander-v0",
+        "cfg" : "config/lunar_lander_config.json"
+    },
+    "agent" : 
+    {
+        "type" : "PPOAgent",
+        "model" : "agents/models/last_model copy"
+    },
+    "interpretor" : "GPT_OSS_Model"
+}
