@@ -816,7 +816,7 @@ class LunarLander(gym.Env, EzPickle):
         ])
         assert len(self.state) == 8
         self.prev_reward, terminated = self.reward(self.state, self.target_state, self.weights)
-        self.error = self.target_state - np.array(self.state[:-2], dtype=np.float32)
+        # self.error = self.target_state - np.array(self.state[:-2], dtype=np.float32)
         # print(self.error)
         if self.render_mode == "human":
             self.render()
