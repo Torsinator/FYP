@@ -30,10 +30,11 @@ if __name__ == "__main__":
     def three_state_obs(obs, target_state, weights):
         pos_obs = obs[[0,1,4]]
         return np.concatenate((pos_obs, weights, obs[[2,3,5]]), dtype=np.float32)
+        # return np.concatenate((pos_obs, obs[[2,3,5]]), dtype=np.float32)
 
     def target_state_fn(obs_space):
-        low = np.array([-2.5, 0, -2*np.pi])
-        high = np.array([2.5, 2.5, 2*np.pi])
+        low = np.array([-1, -0.3, -2*np.pi])
+        high = np.array([1, 2.5, 2*np.pi])
         return np.random.uniform(0.9*low, 0.9*high)
 
     def weights_generation_fn():
@@ -41,7 +42,8 @@ if __name__ == "__main__":
             mask = np.random.random(3) < 0.5
             result = mask * np.random.random(3)
             if np.any(result != 0):
-                return _normalise(result)
+                print(result / np.max(result))
+                return result / np.max(result)
 
     # --- Parallel environment ---
     def make_env(seed=None):
@@ -54,29 +56,29 @@ if __name__ == "__main__":
             return env
         return _init
 
-    num_envs = 16
+    num_envs = 24
     env = SubprocVecEnv([make_env(seed=i) for i in range(num_envs)])
 
-    # --- HER + SAC ---
-    goal_selection_strategy = GoalSelectionStrategy.FUTURE
+    # # --- HER + SAC ---
+    # goal_selection_strategy = GoalSelectionStrategy.FUTURE
 
-    model = SAC(
-        "MultiInputPolicy",
-        env,
-        replay_buffer_class=HerReplayBuffer,
-        replay_buffer_kwargs=dict(
-            n_sampled_goal=8,
-            goal_selection_strategy=goal_selection_strategy,
-        ),
-        learning_starts=(num_envs+1)*50*20,
-        verbose=1,
-    )
+    # model = SAC(
+    #     "MultiInputPolicy",
+    #     env,
+    #     replay_buffer_class=HerReplayBuffer,
+    #     replay_buffer_kwargs=dict(
+    #         n_sampled_goal=16,
+    #         goal_selection_strategy=goal_selection_strategy,
+    #     ),
+    #     learning_starts=(num_envs+1)*50*20,
+    #     verbose=1,
+    # )
 
-    # model = SAC.load("./her_lunar_lander_model", env=env)
+    model = SAC.load("./her_lunar_lander_model_weights", env=env)
 
-    # Train
-    model.learn(1_000_000)
-    model.save("./her_lunar_lander_model")
+    # # # Train
+    # model.learn(10_000_000)
+    # model.save("./her_lunar_lander_model_weights")
 
     
 
@@ -91,11 +93,14 @@ if __name__ == "__main__":
                            episode_trigger=lambda episode: True)
 
     obs, info = demo_env.reset(options={
-        "target_state": np.array([0,0.5,0], dtype=np.float32),
+        "target_state": np.array([0.5,0.5,-3.14], dtype=np.float32),
         "weights": np.array([1,1,1], dtype=np.float32)
     })
 
-    model = SAC.load("./her_lunar_lander_model", env=demo_env)
+    print("actual_obs", obs)
+    print("obs_space", demo_env.observation_space)
+
+    model = SAC.load("./her_lunar_lander_model_weights", env=demo_env)
 
     done = False
     while not done:
