@@ -1,13 +1,13 @@
 {
     "environment" : 
     {
-        "name" : "CustomLunarLander-v0",
+        "name" : "Lunar_Lander_SAC_HER_Env",
         "cfg" : "config/lunar_lander_config.json"
     },
     "agent" : 
     {
-        "type" : "PPOAgent",
-        "model" : "agents/models/last_model copy"
+        "type" : "SACAgent",
+        "model" : "agents/models/sac_her_31m"
     },
     "interpretor" : "GPT_OSS_Model"
 }

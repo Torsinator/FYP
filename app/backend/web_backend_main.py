@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from json import load
 from interpretors.InterpretorLoader import get_interpretor_class
 from agents.AgentLoader import get_agent_class
+from agents.Agent import Agent
 import gymnasium as gym
 import numpy as np
 import ast
@@ -32,6 +33,13 @@ def parseConfig(path):
         config = load(file)
     return config
 
+def new_episode(env_name, agent_class:Agent, agent_model_path):
+    env = get_env(env_name)
+    env = gym.wrappers.RecordVideo(env, video_folder=video_folder,
+                           episode_trigger=lambda episode: True)
+    agent = agent_class.load(agent_model_path, env)
+    return env, agent
+
 def reconfig():
     # Get config data
     config = parseConfig("config/app_config.json")
@@ -46,28 +54,47 @@ def reconfig():
     interpretor = get_interpretor_class(interp_name)(env_cfg)    # Get class and call constructor
     print("interpretor set up")
 
-    agent = get_agent_class(agent_type).load(agent_model_path)
-    print("agent set up")
+    agent_class = get_agent_class(agent_type)
 
     # load the interpretor model (large)
     interpretor.load()
 
-    return env_cfg, env_name, interpretor, agent
+    return env_cfg, env_name, interpretor, agent_class, agent_model_path
 
-def new_episode(env_name):
-    env = get_env(env_name)
-    env = gym.wrappers.RecordVideo(env, video_folder=video_folder,
-                           episode_trigger=lambda episode: True)
-    return env
+def interpolate_states(states, episode_length, hz):
+    """
+    Interpolate target states so that we have one target per timestep.
+    states: array [N, state_dim]
+    """
+    num_waypoints = len(states)
+    state_dim = states.shape[1]
+
+    # Original timepoints (spread across episode)
+    t_waypoints = np.linspace(0, episode_length, num_waypoints)
+
+    # New dense timeline at desired resolution
+    t_dense = np.linspace(0, episode_length, int(episode_length * hz))
+
+    # Interpolate each dimension separately
+    states_interp = np.zeros((len(t_dense), state_dim))
+    for d in range(state_dim):
+        f = interp1d(t_waypoints, states[:, d], kind="linear")
+        states_interp[:, d] = f(t_dense)
+
+    return states_interp
 
 def run_episode(env, model, traj, weights):
     # Interpolate to per-timestep targets
-    # states_interp = interpolate_states(traj, EPISODE_LENGTH_SECONDS, HZ)
+    states_interp = interpolate_states(traj, EPISODE_LENGTH_SECONDS, HZ)
 
-    # weights_interp = interpolate_states(weights, EPISODE_LENGTH_SECONDS, HZ)
+    weights_interp = interpolate_states(weights, EPISODE_LENGTH_SECONDS, HZ)
 
-    states_interp = traj
-    weights_interp = weights[:, [0,1,4]]
+    # states_interp = traj
+    # # weights_interp = weights[:, [0,1,4]]
+    # weights_interp = weights
+
+    print(f"debug weights: {weights}")
+    print(f"debug states: {states_interp}")
 
     # Record video
     video_folder = "./final_video"
@@ -75,11 +102,17 @@ def run_episode(env, model, traj, weights):
 
     obs, info = env.reset(options={"target_state": states_interp[0], "weights": weights_interp[0]})
 
+    path = f"{env.name_prefix}-episode"
+    if f"{env.episode_id}"[0] != "-":
+        path += "-"
+    path += f"{env.episode_id}.mp4"
+
     # Step through dense interpolated targets
     for i in range(len(states_interp)):
         done = False
-        env.unwrapped.set_target_state(np.array(states_interp[i], dtype=np.float32))
-        env.unwrapped.set_weights(np.array(weights_interp[i], dtype=np.float32))
+        print("innnnnnnn")
+        env.env.set_target_state(np.array(states_interp[i], dtype=np.float32))
+        env.env.set_weights(np.array(weights_interp[i], dtype=np.float32))
         while not done:
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, terminated, truncated, info = env.step(action)
@@ -87,11 +120,12 @@ def run_episode(env, model, traj, weights):
 
     env.close()
     print(f"Final demonstration video recorded and saved in: {video_folder}")
+    return path
 
 # Read config and create necessary objects
-env_cfg, env_name, interpretor, agent = reconfig()
+env_cfg, env_name, interpretor, agent_class, agent_model_path = reconfig()
 
-env = new_episode(env_name)
+env, agent = new_episode(env_name, agent_class, agent_model_path)
 
 app = FastAPI()
 
@@ -126,7 +160,8 @@ def root():
 def reset():
     global env
     global new_episode_flag
-    env = new_episode(env_name)
+    global agent
+    env, agent = new_episode(env_name, agent_class, agent_model_path)
     new_episode_flag = True
     return {}
 
@@ -134,23 +169,20 @@ def reset():
 def command(command : ChatRequest):
     global new_episode_flag
     clarify, reasoning, traj, weights = interpretor.give_command(command.message, new_episode_flag)
-    path = f"{env.name_prefix}-episode"
-    if f"{env.episode_id}"[0] != "-":
-        path += "-"
-    path += f"{env.episode_id}.mp4"
-    response = ChatResponse(clarify=clarify, reasoning=reasoning, states=traj, weights=weights, video_path=path)
+    new_episode_flag = False
+    path = ""
     if not clarify:
-        traj = ast.literal_eval(traj)
-        traj.insert(0, ast.literal_eval(env_cfg.get("current_state")))
-        traj = np.array(traj)
-        weights = ast.literal_eval(weights)
+        np_traj = ast.literal_eval(traj)
+        np_traj.insert(0, ast.literal_eval(env_cfg.get("current_state")))
+        np_traj = np.array(np_traj)
+        np_weights = ast.literal_eval(weights)
 
 
-        weights.insert(0, weights[0])
-        weights = np.array(weights)
-        run_episode(env, agent, traj, weights)
-        new_episode_flag = False
-        new_episode(env_name)
+        np_weights.insert(0, np_weights[0])
+        np_weights = np.array(np_weights)
+        path = run_episode(env, agent, np_traj, np_weights)
+        new_episode(env_name, agent_class, agent_model_path)
+    response = ChatResponse(clarify=clarify, reasoning=reasoning, states=traj, weights=weights, video_path=path)
     return response
 
 @app.websocket("/ws/generate")

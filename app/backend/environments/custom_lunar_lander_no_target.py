@@ -813,10 +813,10 @@ class LunarLander(gym.Env, EzPickle):
             20.0 * self.lander.angularVelocity / FPS,
             1.0 if self.legs[0].ground_contact else 0.0,
             1.0 if self.legs[1].ground_contact else 0.0,
-        ])
+        ], dtype=np.float32)
         assert len(self.state) == 8
         self.prev_reward, terminated = self.reward(self.state, self.target_state, self.weights)
-        self.error = self.target_state - np.array(self.state[:-2], dtype=np.float32)
+        # self.error = self.target_state - np.array(self.state[:-2], dtype=np.float32)
         # print(self.error)
         if self.render_mode == "human":
             self.render()

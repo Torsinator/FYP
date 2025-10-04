@@ -6,12 +6,29 @@ if __name__ == "__main__":
     import gymnasium as gym
     from gymnasium.wrappers import RecordVideo
 
-    from stable_baselines3 import SAC
+    from stable_baselines3 import TD3
     from stable_baselines3.her.her_replay_buffer import HerReplayBuffer
     from stable_baselines3.her.goal_selection_strategy import GoalSelectionStrategy
     from stable_baselines3.common.vec_env import SubprocVecEnv
 
     from custom_environment_wrapper import CustomEnvironmentWrapper
+
+    import matplotlib.pyplot as plt
+
+    from stable_baselines3 import PPO
+    from stable_baselines3.common.monitor import Monitor
+    from stable_baselines3.common.results_plotter import plot_results
+    from stable_baselines3.common import results_plotter
+    from stable_baselines3.common.env_util import make_vec_env
+
+    from datetime import datetime
+
+    # Current timestamp as string
+    timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+        # Create log directory
+    log_dir = f"tmp-{timestamp_str}/"
+    os.makedirs(log_dir, exist_ok=True)
     
 
     # rng = np.random.default_rng(seed=42)
@@ -33,9 +50,9 @@ if __name__ == "__main__":
         # return np.concatenate((pos_obs, obs[[2,3,5]]), dtype=np.float32)
 
     def target_state_fn(obs_space):
-        low = np.array([-1, -0.3, -2*np.pi])
-        high = np.array([1, 2.5, 2*np.pi])
-        return np.random.uniform(0.9*low, 0.9*high)
+        low = np.array([-1, -0.2, -2*np.pi])
+        high = np.array([1, 1.5, 2*np.pi])
+        return np.random.uniform(low, high)
 
     def weights_generation_fn():
         while True:
@@ -54,33 +71,37 @@ if __name__ == "__main__":
             # if seed is not None:
             #     env.seed(seed)
             return env
-        return _init
+        return _init()
 
     num_envs = 24
-    env = SubprocVecEnv([make_env(seed=i) for i in range(num_envs)])
+    # env = SubprocVecEnv([make_env(seed=i) for i in range(num_envs)])
+    # env = Monitor(env, log_dir)
+    env = make_vec_env(make_env, num_envs, monitor_dir=log_dir)
 
     # # --- HER + SAC ---
-    # goal_selection_strategy = GoalSelectionStrategy.FUTURE
+    goal_selection_strategy = GoalSelectionStrategy.FUTURE
 
-    # model = SAC(
-    #     "MultiInputPolicy",
-    #     env,
-    #     replay_buffer_class=HerReplayBuffer,
-    #     replay_buffer_kwargs=dict(
-    #         n_sampled_goal=16,
-    #         goal_selection_strategy=goal_selection_strategy,
-    #     ),
-    #     learning_starts=(num_envs+1)*50*20,
-    #     verbose=1,
-    # )
+    model = TD3(
+        "MultiInputPolicy",
+        env,
+        replay_buffer_class=HerReplayBuffer,
+        replay_buffer_kwargs=dict(
+            n_sampled_goal=16,
+            goal_selection_strategy=goal_selection_strategy,
+        ),
+        learning_starts=(num_envs+1)*50*20,
+        verbose=1,
+    )
 
-    model = SAC.load("./her_lunar_lander_model_weights", env=env)
+    # model = SAC.load("./her_lunar_lander_model_weights_new", env=env)
 
-    # # # Train
-    # model.learn(10_000_000)
-    # model.save("./her_lunar_lander_model_weights")
+    # # Train
+    model.learn(2_000_000)
+    model.save("./td3_her_2m")
 
-    
+    # Plot the results
+    plot_results([log_dir], 2_000_000, results_plotter.X_TIMESTEPS, "TD3 with HER")
+    plt.savefig(f"{log_dir}/plot")
 
     # --- Single demo video ---
     video_folder = "./final_video"
@@ -93,14 +114,14 @@ if __name__ == "__main__":
                            episode_trigger=lambda episode: True)
 
     obs, info = demo_env.reset(options={
-        "target_state": np.array([0.5,0.5,-3.14], dtype=np.float32),
+        "target_state": np.array([0.5,0.5,3.14], dtype=np.float32),
         "weights": np.array([1,1,1], dtype=np.float32)
     })
 
     print("actual_obs", obs)
     print("obs_space", demo_env.observation_space)
 
-    model = SAC.load("./her_lunar_lander_model_weights", env=demo_env)
+    # model = SAC.load("./her_lunar_lander_model_weights_new", env=demo_env)
 
     done = False
     while not done:

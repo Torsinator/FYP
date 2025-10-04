@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import api from "../api";
 import "../css/ChatVideoModule.css";
 
@@ -24,14 +24,13 @@ function ChatVideoModule() {
 
         try {
             const res = await api.post("/command", { message: chatInput });
+            setResponse(res.data);
+            setState(STATES.RESPONSE_RECEIVED);
 
             if (res.data.clarify) {
                 setState(STATES.CLARIFY);
                 return;
             }
-
-            setResponse(res.data);
-            setState(STATES.RESPONSE_RECEIVED);
 
             const videoRes = await api.get(`/video/${res.data.video_path}`, {
                 responseType: "blob",
@@ -54,11 +53,15 @@ function ChatVideoModule() {
         api.get("/reset");
     };
 
+    useEffect(() => {
+    // On first load (or refresh), tell backend to reset
+        reset()
+    }, []); // empty deps -> only runs on mount
+
     return (
         <div className="chat-video-container">
             <div className="chat-input-section">
-                <input
-                    type="text"
+                <textarea
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => {

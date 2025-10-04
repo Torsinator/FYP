@@ -34,17 +34,18 @@ class GPT_OSS_Model(Interpretor):
         assert(self.tokenizer)
 
         if (new):
+            print("new chat")
             self.messages = []
             system_prompt = f'''{self.config.get("context")}.
 Give a trajectory of states and weights for the following command.
 The trajectory must have sufficient although minimal target states (possibly 1) to capture the complete expected behaviour. The states do not need to be over a complete time sequence, but just represent targets.
-Each state variable in each state must have a weight value between 0 an 1 depending on how important it is to obtasin the desired user behaviour.
+Each state variable in each state must have a weight value between 0 an 1 depending on how important it is to capture the desired user behaviour. VERY IMPORTANT: The weights can be different across target states if the individual state variable priorities change.
 The states are {self.config.get("states")} with max and min values of {self.config.get("bounds").get("max")} and {self.config.get("bounds").get("min")}. Do not exceed these bounds.
 Reasoning should be given for each state and weighting and be presented in the <reasoning> </reasoning> tags.
 Trajectory should be given in the <trajectory></trajectory> tags and be presented as a 2d array of states.
 Weights should be given in the <weights></weights> tags and be presented as a 2d array of weights. There must be as many weights as states in the trajectory.
 The order should be <reasoning>, <trajectory>, <weights>
-The <weights> and <trajectory> should only be a 2d array, no comments.
+The <weights> and <trajectory> should only be a 2d array of floats, no comments or expressions.
 The current state is {self.config.get("current_state")}. You may need to move to an appropriate starting state before beginning the command.
 VERY IMPORTANT: If the instruction is too vague or anytime you feel you need to make an assumption, simply stop and output only <clarification> clarification_message </clarification> for the user to clarify certain aspects.
 DO NOT GUESS ANYTHING
@@ -65,4 +66,5 @@ I will present the instructions as line by line commands.
         outputs = self.model.generate(**inputs, max_new_tokens = 4096, do_sample = False, streamer = streamer,)
         generated_text = self.tokenizer.decode(outputs[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
         print(generated_text)
+        self.messages.append({"role": "assistant", "content": f"{generated_text}"})
         return parsing.parse_output(generated_text, self.config)

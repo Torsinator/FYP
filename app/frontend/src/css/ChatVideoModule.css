@@ -2,7 +2,7 @@
 
 /* Wider container */
 .chat-video-container {
-  max-width: 1200px;   /* ⬅️ was 800px */
+  width: 1200px;   /* ⬅️ was 800px */
   margin: 2rem auto;
   padding: 2rem;
   background: #ffffff;
@@ -19,21 +19,25 @@
   margin-bottom: 1.5rem;
 }
 
-/* Wider chat input */
-.chat-input-section input {
+/* Multiline chat input */
+.chat-input-section textarea {
   flex: 1;
   min-width: 400px;
+  min-height: 80px;       /* ⬅️ makes it taller */
+  max-height: 200px;      /* ⬅️ optional limit */
   padding: 0.9rem 1.2rem;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1.1rem;
+  resize: vertical;        /* user can resize height */
   transition: border-color 0.2s ease;
 }
 
-.chat-input-section input:focus {
+.chat-input-section textarea:focus {
   border-color: #4a90e2;
   outline: none;
 }
+
 
 .chat-input-section button {
   background: #4a90e2;

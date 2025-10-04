@@ -8,7 +8,7 @@ class Agent(ABC):
         raise NotImplementedError
     
     @staticmethod
-    def load(model_path) -> "Agent":
+    def load(model_path, gym_env=None) -> "Agent":
         raise NotImplementedError
 
     @abstractmethod

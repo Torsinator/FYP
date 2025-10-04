@@ -1,7 +1,8 @@
 # import models
 from agents.ppo_agent import PPOAgent
+from agents.sac_agent import SACAgent
 
-agents = [PPOAgent]
+agents = [PPOAgent, SACAgent]
 
 def get_agent_class(agent_name):
     for cls in agents:

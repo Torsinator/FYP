@@ -6,7 +6,7 @@ class PPOAgent(Agent):
         self.model = PPO.load(model_path, device="cpu")
 
     @staticmethod
-    def load(model_path) -> Agent:
+    def load(model_path, gym_env=None) -> Agent:
         return PPOAgent(model_path)
     
     def set_env(self, gym_env):

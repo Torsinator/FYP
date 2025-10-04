@@ -31,7 +31,7 @@ class CustomEnvironmentWrapper(gym.Wrapper):
         # if float(reward) > -1000:
         #     reward = self.reward_fn(obs, self.target_state, self.weights)
         if float(reward) < -1000:
-            reward = -50
+            reward = -1
         else:
             reward = self.compute_reward(obs[[0,1,2]], self.target_state, info)
         return {
@@ -93,5 +93,5 @@ class CustomEnvironmentWrapper(gym.Wrapper):
         dist = np.linalg.norm(diff, axis=-1)
 
         # sparse reward example: 0 if within tolerance, -1 otherwise
-        return np.where(dist < 0.05, 1.0, -1.0).astype(np.float32)
+        return np.where(dist < 0.05, 1.0, 0).astype(np.float32)
         # return dist
