@@ -13,7 +13,6 @@ from agents.Agent import Agent
 import gymnasium as gym
 import numpy as np
 import ast
-from scipy.interpolate import interp1d
 import os
 from environments.env_loader import get_env
 from pathlib import Path
@@ -61,37 +60,15 @@ def reconfig():
 
     return env_cfg, env_name, interpretor, agent_class, agent_model_path
 
-def interpolate_states(states, episode_length, hz):
-    """
-    Interpolate target states so that we have one target per timestep.
-    states: array [N, state_dim]
-    """
-    num_waypoints = len(states)
-    state_dim = states.shape[1]
-
-    # Original timepoints (spread across episode)
-    t_waypoints = np.linspace(0, episode_length, num_waypoints)
-
-    # New dense timeline at desired resolution
-    t_dense = np.linspace(0, episode_length, int(episode_length * hz))
-
-    # Interpolate each dimension separately
-    states_interp = np.zeros((len(t_dense), state_dim))
-    for d in range(state_dim):
-        f = interp1d(t_waypoints, states[:, d], kind="linear")
-        states_interp[:, d] = f(t_dense)
-
-    return states_interp
-
 def run_episode(env, model, traj, weights):
     # Interpolate to per-timestep targets
-    states_interp = interpolate_states(traj, EPISODE_LENGTH_SECONDS, HZ)
+    # states_interp = interpolate_states(traj, EPISODE_LENGTH_SECONDS, HZ)
 
-    weights_interp = interpolate_states(weights, EPISODE_LENGTH_SECONDS, HZ)
+    # weights_interp = interpolate_states(weights, EPISODE_LENGTH_SECONDS, HZ)
 
-    # states_interp = traj
+    states_interp = traj
     # # weights_interp = weights[:, [0,1,4]]
-    # weights_interp = weights
+    weights_interp = weights
 
     print(f"debug weights: {weights}")
     print(f"debug states: {states_interp}")

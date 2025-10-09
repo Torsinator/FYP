@@ -1,12 +1,12 @@
 {
     "environment" : 
     {
-        "name" : "Lunar_Lander_SAC_HER_Env",
+        "name" : "Lunar_Lander_MPC_Env",
         "cfg" : "config/lunar_lander_config.json"
     },
     "agent" : 
     {
-        "type" : "SACAgent",
+        "type" : "MPCAgent",
         "model" : "agents/models/sac_her_31m"
     },
     "interpretor" : "GPT_OSS_Model"

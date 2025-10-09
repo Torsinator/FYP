@@ -3,8 +3,8 @@
     "states" : "[x (metres), y (metres), angle (rads)]",
     "bounds" : 
     {
-        "max": "[1, 2.5, 2pi]",
-        "min": "[-1, 0,-2pi]"
+        "max": "[x = 1, y = 1.5, angle = 2pi]",
+        "min": "[x = -1, y = 0, angle = -2pi]"
     },
     "current_state" : "[0, 1.4, 0]"
 }

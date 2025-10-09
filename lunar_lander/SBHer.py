@@ -6,7 +6,7 @@ if __name__ == "__main__":
     import gymnasium as gym
     from gymnasium.wrappers import RecordVideo
 
-    from stable_baselines3 import TD3
+    from stable_baselines3 import SAC
     from stable_baselines3.her.her_replay_buffer import HerReplayBuffer
     from stable_baselines3.her.goal_selection_strategy import GoalSelectionStrategy
     from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # # --- HER + SAC ---
     goal_selection_strategy = GoalSelectionStrategy.FUTURE
 
-    model = TD3(
+    model = SAC(
         "MultiInputPolicy",
         env,
         replay_buffer_class=HerReplayBuffer,
@@ -89,18 +89,18 @@ if __name__ == "__main__":
             n_sampled_goal=16,
             goal_selection_strategy=goal_selection_strategy,
         ),
-        learning_starts=(num_envs+1)*50*20,
+        learning_starts=(num_envs)*50*20*10,
         verbose=1,
     )
 
     # model = SAC.load("./her_lunar_lander_model_weights_new", env=env)
 
     # # Train
-    model.learn(2_000_000)
-    model.save("./td3_her_2m")
+    model.learn(20_000_000)
+    model.save("./sac_her_w_20m")
 
     # Plot the results
-    plot_results([log_dir], 2_000_000, results_plotter.X_TIMESTEPS, "TD3 with HER")
+    plot_results([log_dir], 20_000_000, results_plotter.X_TIMESTEPS, "TD3 with HER")
     plt.savefig(f"{log_dir}/plot")
 
     # --- Single demo video ---

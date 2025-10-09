@@ -36,21 +36,55 @@ class GPT_OSS_Model(Interpretor):
         if (new):
             print("new chat")
             self.messages = []
-            system_prompt = f'''{self.config.get("context")}.
-Give a trajectory of states and weights for the following command.
-The trajectory must have sufficient although minimal target states (possibly 1) to capture the complete expected behaviour. The states do not need to be over a complete time sequence, but just represent targets.
-Each state variable in each state must have a weight value between 0 an 1 depending on how important it is to capture the desired user behaviour. VERY IMPORTANT: The weights can be different across target states if the individual state variable priorities change.
-The states are {self.config.get("states")} with max and min values of {self.config.get("bounds").get("max")} and {self.config.get("bounds").get("min")}. Do not exceed these bounds.
-Reasoning should be given for each state and weighting and be presented in the <reasoning> </reasoning> tags.
-Trajectory should be given in the <trajectory></trajectory> tags and be presented as a 2d array of states.
-Weights should be given in the <weights></weights> tags and be presented as a 2d array of weights. There must be as many weights as states in the trajectory.
-The order should be <reasoning>, <trajectory>, <weights>
-The <weights> and <trajectory> should only be a 2d array of floats, no comments or expressions.
-The current state is {self.config.get("current_state")}. You may need to move to an appropriate starting state before beginning the command.
-VERY IMPORTANT: If the instruction is too vague or anytime you feel you need to make an assumption, simply stop and output only <clarification> clarification_message </clarification> for the user to clarify certain aspects.
-DO NOT GUESS ANYTHING
-I will present the instructions as line by line commands.
-            '''
+            system_prompt = f"""
+{self.config.get("context")}
+
+TASK
+Generate a minimal, sufficient **trajectory** of target states and a matching 2D array of per-variable **weights** for the given command.
+
+DEFINITIONS
+States: {self.config.get("states")}
+Bounds: min = {self.config.get("bounds").get("min")}, max = {self.config.get("bounds").get("max")}
+Current state: {self.config.get("current_state")}
+
+STRICT OUTPUT SPEC (MUST FOLLOW EXACTLY)
+- If the instruction is ambiguous or any required info is missing, output **only**:
+  <clarification>clear_text_explaining_what_is_missing_or_ambiguous</clarification>
+  (No other text allowed.)
+
+- Otherwise output **exactly these three tags in this order** and nothing else:
+  1) <reasoning>...</reasoning>
+     - Free text explaining assumptions and why each target state & weighting was chosen.
+     - Keep it concise (max ~6 short sentences).
+  2) <trajectory>[[...],[...],...]</trajectory>
+     - A 2D JSON array (list of rows) of numeric **floats** only.
+     - Each row = one target state; each column corresponds to the state variables listed above.
+     - Use decimal notation (e.g. 0.125 or 1.0). **Do not** use scientific notation (`1e-3`), expressions, variable names, comments, or trailing commas.
+  3) <weights>[[...],[...],...]</weights>
+     - A 2D JSON array of floats with **exactly the same shape** as `<trajectory>`.
+     - Every element must be in range [0.0, 1.0].
+     - No extra text or formatting.
+
+VALIDATION STEPS (you must perform these checks before returning)
+1. Shape: number of columns in each `<trajectory>` row == number of state variables in `States`. Number of rows in `<weights>` == number of rows in `<trajectory>`. Each corresponding row length must match.
+2. Bounds: every trajectory value must satisfy `min <= value <= max` for the corresponding state variable.
+3. Weights: every weight must satisfy `0.0 <= weight <= 1.0`.
+4. Formatting: `<trajectory>` and `<weights>` must be valid JSON arrays containing only numeric literals (no comments, no text).
+If any check fails, **do not** output reasoning or arrays — output **only** a `<clarification>` tag listing the failing checks (short, comma-separated).
+
+ADDITIONAL RULES
+- Do not include any other tags or text outside the tags described above.
+- Do not guess: if you must assume something to proceed, stop and request clarification using `<clarification>`.
+- You may include an initial state in `<trajectory>` to represent moving from `Current state` to the first target if appropriate.
+
+EXAMPLE (format only — replace with real numbers that respect bounds and shapes)
+<reasoning>Concise reason for states and weights.</reasoning>
+<trajectory>[[0.0, 1.0, 0.5], [0.2, 0.9, 0.1]]</trajectory>
+<weights>[[1.0, 0.8, 0.2], [0.9, 0.7, 0.1]]</weights>
+
+Now produce the output for the command that follows.
+"""
+
             self.messages.append({"role": "system", "content": f"{system_prompt}"})
 
         self.messages.append({"role": "user", "content": f"{user_command}"})

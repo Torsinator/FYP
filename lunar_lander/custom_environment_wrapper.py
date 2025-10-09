@@ -14,31 +14,30 @@ class CustomEnvironmentWrapper(gym.Wrapper):
         self.weights = None
         self.target_state = None
         self.min_distance = -np.inf
+        self.last_dist = None
 
         # Update observation space
-        low = np.concatenate((env.observation_space.low[[0,1,4]], [0,0,0], env.observation_space.low[[2,3,5]]))
-        high = np.concatenate((env.observation_space.high[[0,1,4]], [1,1,1], env.observation_space.high[[2,3,5]]))
+        low = np.concatenate((env.observation_space.low[[0,1,4]], env.observation_space.low[[0,1,4]], env.observation_space.low[[2,3,5]]))
+        high = np.concatenate((env.observation_space.high[[0,1,4]], env.observation_space.high[[0,1,4]], env.observation_space.high[[2,3,5]]))
         self.observation_space = Box(low=low, high=high, dtype=np.float32)
-        self.observation_space = spaces.Dict({
-            "observation": self.observation_space,                  # full state (Box(8,))
-            "desired_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
-            "achieved_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
-        })
+        # self.observation_space = spaces.Dict({
+        #     "observation": self.observation_space,                  # full state (Box(8,))
+        #     "desired_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
+        #     "achieved_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
+        # })
     
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
         obs = self.obs_fn(obs, self.target_state, self.weights)
         # if float(reward) > -1000:
         #     reward = self.reward_fn(obs, self.target_state, self.weights)
-        if float(reward) < -1000:
-            reward = -1
-        else:
-            reward = self.compute_reward(obs[[0,1,2]], self.target_state, info)
-        return {
-        "observation": obs.astype(np.float32),
-        "achieved_goal": np.array(obs[[0,1,2]], dtype=np.float32),
-        "desired_goal": np.array(self.target_state, dtype=np.float32)
-    }, reward, reward == 1 or terminated, truncated, info
+        reward = self.compute_reward(obs[[0,1,2]], self.target_state, info)
+    #     return {
+    #     "observation": obs.astype(np.float32),
+    #     "achieved_goal": np.array(obs[[0,1,2]], dtype=np.float32),
+    #     "desired_goal": np.array(self.target_state, dtype=np.float32)
+    # }, reward, reward == 1 or terminated, truncated, info
+        return obs, reward, reward == 100 or terminated, truncated, info
     
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[Any, dict[str, Any]]:
         self.min_distance = -np.inf
@@ -57,12 +56,14 @@ class CustomEnvironmentWrapper(gym.Wrapper):
 
         obs, info = super().reset(seed=seed, options=options)
         obs = self.obs_fn(obs, self.target_state, self.weights)
+        self.last_dist = np.linalg.norm(obs[[0,1,2]] - self.target_state, axis=-1)
         print("TW: ", self.target_state)
-        return {
-        "observation": obs.astype(np.float32),
-        "achieved_goal": np.array(obs[[0,1,2]], dtype=np.float32),
-        "desired_goal": np.array(self.target_state, dtype=np.float32)
-    }, info
+    #     return {
+    #     "observation": obs.astype(np.float32),
+    #     "achieved_goal": np.array(obs[[0,1,2]], dtype=np.float32),
+    #     "desired_goal": np.array(self.target_state, dtype=np.float32)
+    # }, info
+        return obs, info
     
     def set_target_state(self, target_state):
         self.target_state = target_state
@@ -84,14 +85,21 @@ class CustomEnvironmentWrapper(gym.Wrapper):
 
         # difference (works for (3,) or (batch, 3))
         diff = achieved_goal - desired_goal
+        diff = np.linalg.norm(diff, axis=-1)
 
         # optional weighting/scaling
         # if self.weights is shape (3,), this will broadcast fine
-        if hasattr(self, "weights"):
-            diff = self.weights * diff
+        # if hasattr(self, "weights"):
+        #     diff = self.weights * diff
 
-        dist = np.linalg.norm(diff, axis=-1)
+        dist = self.last_dist - diff
+
+        self.last_dist = diff
 
         # sparse reward example: 0 if within tolerance, -1 otherwise
-        return np.where(dist < 0.05, 1.0, 0).astype(np.float32)
+        if diff > 0.1:
+            return dist
+        else:
+            return np.array(100.0)
+        # return dist
         # return dist
