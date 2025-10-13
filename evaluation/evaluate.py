@@ -30,10 +30,10 @@ for i, target_state in targets.iterrows():
         if error < lowest_error:
             lowest_error = error
             error_vals = vals
-    addition = np.concatenate([[lowest_error], error_vals])
+    addition = np.concatenate([target_state, [lowest_error], error_vals])
     results.append(addition)
 
-column_names = ['error', 'dx', 'dy', 'dtheta']
+column_names = ['tx', 'ty', 'ttheta', 'error', 'dx', 'dy', 'dtheta']
 df_custom = pd.DataFrame(results, columns=column_names)
 
     
