@@ -5,7 +5,7 @@ from gymnasium import spaces
 import numpy as np
 
 class CustomEnvironmentWrapper(gym.Wrapper):
-    def __init__(self, env, obs_fn, reward_fn, target_state_fn, weights_fn, obs_space, is_dict):
+    def __init__(self, env, obs_fn, reward_fn, target_state_fn, weights_fn):
         super().__init__(env)
         self.reward_fn = reward_fn
         self.obs_fn = obs_fn
@@ -14,16 +14,16 @@ class CustomEnvironmentWrapper(gym.Wrapper):
         self.weights = None
         self.target_state = None
         self.min_distance = -np.inf
-        self.observation_space  = obs_space
-        self.is_dict = is_dict
 
         # Update observation space
-        if is_dict:
-            self.observation_space = spaces.Dict({
-                "observation": self.observation_space,                  # full state (Box(8,))
-                "desired_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
-                "achieved_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
-            })
+        low = np.concatenate((env.observation_space.low[[0,1,4]], env.observation_space.low[[2,3,5]]))
+        high = np.concatenate((env.observation_space.high[[0,1,4]], env.observation_space.high[[2,3,5]]))
+        self.observation_space = Box(low=low, high=high, dtype=np.float32)
+        # self.observation_space = spaces.Dict({
+        #     "observation": self.observation_space,                  # full state (Box(8,))
+        #     "desired_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
+        #     "achieved_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
+        # })
     
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
@@ -31,14 +31,14 @@ class CustomEnvironmentWrapper(gym.Wrapper):
         # if float(reward) > -1000:
         #     reward = self.reward_fn(obs, self.target_state, self.weights)
         if float(reward) < -1000:
-            reward = -1
+            reward = -1000
         else:
             reward = self.compute_reward(obs[[0,1,2]], self.target_state, info)
         # return {
         # "observation": obs.astype(np.float32),
         # "achieved_goal": np.array(obs[[0,1,2]], dtype=np.float32),
         # "desired_goal": np.array(self.target_state, dtype=np.float32)}
-        return obs, reward, reward == 1 or terminated, truncated, info
+        return obs, reward, reward > -0.1 or terminated, truncated, info
     
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[Any, dict[str, Any]]:
         self.min_distance = -np.inf
@@ -93,5 +93,5 @@ class CustomEnvironmentWrapper(gym.Wrapper):
         dist = np.linalg.norm(achieved_goal[[0,1,2]], axis=-1)
 
         # sparse reward example: 0 if within tolerance, -1 otherwise
-        return np.where(dist < 0.1, 1.0, 0).astype(np.float32)
+        return -dist
         # return dist

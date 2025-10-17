@@ -99,7 +99,7 @@ def create_lander_model():
     F_world_y = ca.sin(theta) * F_body_x + ca.cos(theta) * F_body_y
 
     model.set_rhs('vx', F_world_x / m)
-    model.set_rhs('vy', F_world_y / m + GRAVITY)  # assuming g = 10 m/s²
+    model.set_rhs('vy', F_world_y / m + GRAVITY)  # assuming g = -10 m/s²
     model.set_rhs('theta', omega)
     model.set_rhs('omega', -h / I * side_thrust_fn(side_thrust))
 
