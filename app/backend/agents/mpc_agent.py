@@ -104,7 +104,7 @@ class MPCAgent(Agent):
         target_state = gym_state_to_mpc(self.env.env.target_state)
         self.last_target = target_state
         # mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[2] - model.x['vx'])**2 + (target_state[3] - model.x['vy'])**2 + (target_state[4] - model.x['theta'])**2 + (target_state[5] - model.x['omega'])**2
-        mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[2] - model.x['theta'])**2
+        mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[2] - model.x['theta'])**2 + model.x['vx']**2 + model.x['vy']**2
         lterm = mterm
         mpc.set_objective(mterm=mterm, lterm=lterm)
         mpc.set_rterm(main_thrust=100, side_thrust=100)

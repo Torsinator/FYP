@@ -10,8 +10,8 @@ class LunarLanderSindy(gym.Wrapper):
         super().__init__(env)
 
         # Update observation space
-        low = np.concatenate((env.observation_space.low[[0,1,4]], env.observation_space.low[[2,3,5]]))
-        high = np.concatenate((env.observation_space.high[[0,1,4]], env.observation_space.high[[2,3,5]]))
+        low = self.gym_state_to_mpc(env.observation_space.low)
+        high = self.gym_state_to_mpc(env.observation_space.high)
         self.observation_space = Box(low=low, high=high, dtype=env.observation_space.dtype)
     
     @staticmethod

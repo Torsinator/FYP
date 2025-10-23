@@ -1,7 +1,7 @@
 from scipy.interpolate import interp1d
 import numpy as np
 
-def interpolate_values(values, episode_length, hz):
+def interpolate_(values, episode_length, hz):
     """
     Interpolate target values so that we have one target per timestep.
     values: array [N, state_dim]
@@ -24,4 +24,4 @@ def interpolate_values(values, episode_length, hz):
     return values_interp
 
 def interpolate():
-    
+    functions = [inter]

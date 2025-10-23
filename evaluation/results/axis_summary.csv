@@ -1,0 +1,4 @@
+Algorithm,Model,Axis,MeanAbsError,VarAbsError
+SAC,SAC_Unweighted_9_States_Sparse,abs_dx,0.12841764630952685,0.013285785674277954
+SAC,SAC_Unweighted_9_States_Sparse,abs_dy,0.17419409371986247,0.06627735343477517
+SAC,SAC_Unweighted_9_States_Sparse,abs_dtheta,0.5034293084967845,1.3368682835830565

@@ -17,6 +17,8 @@ import os
 from environments.env_loader import get_env
 from pathlib import Path
 
+import scipy
+
 EPISODE_LENGTH_SECONDS = 20  # <-- set this
 HZ = 50
 DT = 1.0 / HZ
@@ -60,14 +62,36 @@ def reconfig():
 
     return env_cfg, env_name, interpretor, agent_class, agent_model_path
 
+def interpolate(values, episode_length, hz):
+    """
+    Interpolate target values so that we have one target per timestep.
+    values: array [N, state_dim]
+    """
+    num_waypoints = len(values)
+    state_dim = values.shape[1]
+
+    # Original timepoints (spread across episode)
+    t_waypoints = np.linspace(0, episode_length, num_waypoints)
+
+    # New dense timeline at desired resolution
+    t_dense = np.linspace(0, episode_length, int(episode_length * hz))
+
+    # Interpolate each dimension separately
+    values_interp = np.zeros((len(t_dense), state_dim))
+    for d in range(state_dim):
+        f = scipy.interpolate.interp1d(t_waypoints, values[:, d], kind="linear")
+        values_interp[:, d] = f(t_dense)
+
+    return values_interp
+
 def run_episode(env, model, traj, weights):
     # Interpolate to per-timestep targets
-    # states_interp = interpolate_states(traj, EPISODE_LENGTH_SECONDS, HZ)
+    # states_interp = interpolate(traj, EPISODE_LENGTH_SECONDS, HZ)
 
-    # weights_interp = interpolate_states(weights, EPISODE_LENGTH_SECONDS, HZ)
+    # weights_interp = interpolate(weights, EPISODE_LENGTH_SECONDS, HZ)
 
     states_interp = traj
-    # # weights_interp = weights[:, [0,1,4]]
+    # weights_interp = weights[:, [0,1,4]]
     weights_interp = weights
 
     print(f"debug weights: {weights}")

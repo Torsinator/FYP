@@ -6,8 +6,8 @@
     },
     "agent" : 
     {
-        "type" : "MPCAgent",
-        "model" : "agents/models/sac_her_31m"
+        "type" : "SINDyAgent",
+        "model" : "agents/models/SINDy.txt"
     },
     "interpretor" : "GPT_OSS_Model"
 }

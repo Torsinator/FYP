@@ -406,6 +406,8 @@ class LunarLander(gym.Env, EzPickle):
         # Create Lander body
         initial_y = VIEWPORT_H / SCALE
         initial_x = VIEWPORT_W / SCALE / 2
+        # initial_y = self.np_random.uniform(0.5, VIEWPORT_H / SCALE)
+        # initial_x = self.np_random.uniform(0.5, VIEWPORT_W / SCALE / 1.2)
         self.lander = self.world.CreateDynamicBody(
             position=(initial_x, initial_y),
             angle=0.0,
@@ -427,13 +429,13 @@ class LunarLander(gym.Env, EzPickle):
         self.lander.color2 = (77, 77, 128)
 
         # Apply the initial random impulse to the lander
-        self.lander.ApplyForceToCenter(
-            (
-                self.np_random.uniform(-INITIAL_RANDOM, INITIAL_RANDOM),
-                self.np_random.uniform(-INITIAL_RANDOM, INITIAL_RANDOM),
-            ),
-            True,
-        )
+        # self.lander.ApplyForceToCenter(
+        #     (
+        #         self.np_random.uniform(-INITIAL_RANDOM, INITIAL_RANDOM),
+        #         self.np_random.uniform(-INITIAL_RANDOM, INITIAL_RANDOM),
+        #     ),
+        #     True,
+        # )
 
         if self.enable_wind:  # Initialize wind pattern based on index
             self.wind_idx = self.np_random.integers(-9999, 9999)
@@ -703,7 +705,8 @@ class LunarLander(gym.Env, EzPickle):
         side = (-tip[1], tip[0])
 
         # Generate two random numbers between -1/SCALE and 1/SCALE.
-        dispersion = [self.np_random.uniform(-1.0, +1.0) / SCALE for _ in range(2)]
+        # dispersion = [self.np_random.uniform(-1.0, +1.0) / SCALE for _ in range(2)]
+        dispersion = [0, 0]
 
         self.m_power = 0.0
         if (self.continuous and action[0] > 0.0) or (

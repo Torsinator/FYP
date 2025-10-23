@@ -1,4 +1,4 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.5 Chrome/138.0.7204.251 Electron/37.6.1 Safari/537.36" version="28.2.5" pages="3">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.5 Chrome/138.0.7204.251 Electron/37.6.1 Safari/537.36" version="28.2.5" pages="5">
   <diagram name="App Design" id="b2o2DMQxHp2NjRx4Cd69">
     <mxGraphModel dx="706" dy="632" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -347,7 +347,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="_2xcsQmumpqKvQrQTFJs" name="Page-3">
+  <diagram id="_2xcsQmumpqKvQrQTFJs" name="Pipeline">
     <mxGraphModel dx="861" dy="474" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -369,6 +369,74 @@
         </mxCell>
         <mxCell id="tJChidkAeO_bqnug3CIM-11" value="Compare Different RL and MPC Methods to solve for an arbitary target state" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="920" y="260" width="120" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="uL5X3vDosPRO-VNYlRqr" name="Sindy-MPC">
+    <mxGraphModel dx="1722" dy="948" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hcH8kikqINcGRrTDaWZQ-1" target="hcH8kikqINcGRrTDaWZQ-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-1" value="Collect Small Amount of Sample Data Using Random Control Policy" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="570" width="170" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hcH8kikqINcGRrTDaWZQ-2" target="hcH8kikqINcGRrTDaWZQ-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-2" value="Construct Ensemble of SINDy Models" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="570" width="170" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hcH8kikqINcGRrTDaWZQ-3" target="hcH8kikqINcGRrTDaWZQ-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-3" value="Parse the mean of the SINDy model ensemble and create ODEs&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="570" width="170" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hcH8kikqINcGRrTDaWZQ-4" target="hcH8kikqINcGRrTDaWZQ-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-4" value="Create a MPC Controller with the ODEs" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="570" width="170" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hcH8kikqINcGRrTDaWZQ-5" target="hcH8kikqINcGRrTDaWZQ-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-5" value="Find Interesting States that have a Large Ensemble Variance" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="570" width="170" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="hcH8kikqINcGRrTDaWZQ-6" target="hcH8kikqINcGRrTDaWZQ-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1365" y="710" />
+              <mxPoint x="405" y="710" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-15" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;Loop&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="hcH8kikqINcGRrTDaWZQ-14">
+          <mxGeometry x="0.0247" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hcH8kikqINcGRrTDaWZQ-6" value="Drive the system to these points using MPC. Collect additional dynamics data" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="570" width="170" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="iK-lQ9CR4RMhmAyNahvD" name="Page-5">
+    <mxGraphModel dx="632" dy="629" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="u94HsOvnUsiARlOjhBWX-1" value="Random Action Sampler" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="250" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="u94HsOvnUsiARlOjhBWX-2" value="Fit Ensemble of SINDy Models" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="250" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

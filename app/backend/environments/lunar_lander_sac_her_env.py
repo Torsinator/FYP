@@ -14,7 +14,7 @@ def three_state_reward(state, target_state, weights):
 
 def three_state_obs(obs, target_state, weights):
     pos_obs = obs[[0,1,4]]
-    return np.concatenate((pos_obs, weights, obs[[2,3,5]]), dtype=np.float32)
+    return np.concatenate((pos_obs, obs[[2,3,5]]), dtype=np.float32)
     # return np.concatenate((pos_obs, obs[[2,3,5]]), dtype=np.float32)
 
 def target_state_fn(obs_space):
@@ -42,13 +42,13 @@ class Lunar_Lander_SAC_HER_Env(gym.Wrapper):
         self.min_distance = -np.inf
 
         # Update observation space
-        low = np.concatenate((env.observation_space.low[[0,1,4]], [0,0,0], env.observation_space.low[[2,3,5]]))
-        high = np.concatenate((env.observation_space.high[[0,1,4]], [1,1,1], env.observation_space.high[[2,3,5]]))
+        low = np.concatenate((env.observation_space.low[[0,1,4]], env.observation_space.low[[2,3,5]]))
+        high = np.concatenate((env.observation_space.high[[0,1,4]], env.observation_space.high[[2,3,5]]))
         self.observation_space = Box(low=low, high=high, dtype=np.float32)
         self.observation_space = spaces.Dict({
             "observation": self.observation_space,                  # full state (Box(8,))
-            "desired_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
-            "achieved_goal": spaces.Box(-np.inf, np.inf, (3,), dtype=np.float32),
+                "desired_goal": Box(low=low[:3], high=high[:3], dtype=env.observation_space.dtype),
+                "achieved_goal": Box(low=low[:3], high=high[:3], dtype=env.observation_space.dtype),
         })
     
     @staticmethod
@@ -131,5 +131,5 @@ class Lunar_Lander_SAC_HER_Env(gym.Wrapper):
         dist = np.linalg.norm(diff, axis=-1)
 
         # sparse reward example: 0 if within tolerance, -1 otherwise
-        return np.where(dist < 0.05, 1.0, -1.0).astype(np.float32)
+        return np.where(dist < 0.2, 1.0, -1.0).astype(np.float32)
         # return dist

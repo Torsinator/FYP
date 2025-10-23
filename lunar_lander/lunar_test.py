@@ -23,15 +23,15 @@ def three_state_reward(state, target_state, weights):
 
 def three_state_obs(obs, target_state, weights):
     pos_obs = obs[[0,1,4]]  # only want x, y and angle
-    pos_ts = target_state[[0,1,4]]
+    pos_ts = target_state
     # print((target_state - obs) * weights)
     # return (target_state - obs) * weights
-    return np.concatenate((pos_ts - pos_obs, weights, obs[[2,3,5]]))
+    return np.concatenate((pos_obs, pos_ts, obs[[2,3,5]]))
 
 def target_state_fn(obs_space):
     # return rng.normal(loc=current_state[[0,1,4]], scale=0.2)
-    low = np.array([-2.5, 0, -2*np.pi, 0, 0, 0])
-    high = np.array([2.5, 2.5, 2*np.pi, 1, 1, 1])
+    low = np.array([-2.5, 0, -2*np.pi])
+    high = np.array([2.5, 2.5, 2*np.pi])
     return rng.uniform(0.9*low, 0.9*high)
 
 def weights_generation_fn():
@@ -48,8 +48,8 @@ def main():
     # First, create and train the environment without recording.
     train_env = gym.make("CustomLunarLander-v0", continuous=True)
     train_env = CustomEnvironmentWrapper(train_env, three_state_obs, three_state_reward, target_state_fn, weights_generation_fn)
-    # model = PPO("MlpPolicy", train_env, verbose=1, device="cpu")
-    model = PPO.load("models/last_model", device="cpu")
+    model = PPO("MlpPolicy", train_env, verbose=1, device="cpu")
+    # model = PPO.load("models/last_model", device="cpu")
     model.set_env(train_env)
     model.learn(total_timesteps=2_000_000)
     train_env.close()  # Close training environment

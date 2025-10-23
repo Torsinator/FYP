@@ -376,6 +376,7 @@ class LunarLander(gym.Env, EzPickle):
         # Create Terrain
         CHUNKS = 11
         height = self.np_random.uniform(0, H / 2, size=(CHUNKS + 1,))
+        height = np.zeros(CHUNKS + 1)
         chunk_x = [W / (CHUNKS - 1) * i for i in range(CHUNKS)]
         self.helipad_x1 = chunk_x[CHUNKS // 2 - 1]
         self.helipad_x2 = chunk_x[CHUNKS // 2 + 1]
@@ -420,9 +421,9 @@ class LunarLander(gym.Env, EzPickle):
                 restitution=0.0,
             ),  # 0.99 bouncy
         )
-        print("TW lander mass", self.lander.mass)
-        print("TW lander inertia", self.lander.inertia)
-        print("TW lander height", self.lander.fixtures[0].shape)
+        # print("TW lander mass", self.lander.mass)
+        # print("TW lander inertia", self.lander.inertia)
+        # print("TW lander height", self.lander.fixtures[0].shape)
         self.lander.color1 = (128, 102, 230)
         self.lander.color2 = (77, 77, 128)
 

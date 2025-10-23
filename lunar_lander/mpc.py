@@ -10,8 +10,8 @@ from sindy_rl.env import safe_reset, safe_step
 from tqdm import tqdm
 
 class MPCPolicy(BasePolicy):
-    dt = 0.02
-    n_horizon = 50
+    dt = 0.1
+    n_horizon = 20
     def __init__(self, library, coeffs, target=None):
         self.setup = False
         self.target = target
@@ -38,6 +38,7 @@ class MPCPolicy(BasePolicy):
         trajs_rews = []
 
         for i in tqdm(range(len(targets)), disable=not verbose):
+            k = 0
             target = targets[i]
             self.set_target(target)
             done = False
@@ -50,12 +51,17 @@ class MPCPolicy(BasePolicy):
             obs = obs_list[-1]
             while not done:
                 # collect experience
-                action = self.compute_action(obs)
+                if k % 5 == 0:
+                    k = 0
+                    self.mpc.x0 = obs
+                    self.mpc.set_initial_guess()
+                    action = self.compute_action(obs)  # Get optimal control action
                 print("action", action)
                 obs, rew, done, info = safe_step(env.step(action))
                 act_list.append(action)
                 obs_list.append(obs)
                 rew_list.append(rew)
+                k += 1
                 # print(f"obs: {obs_list}")
                 # print(f"action: {act_list}")
                 # exit()
@@ -81,11 +87,12 @@ def setup_mpc(model, target_state, dt, n_horizon):
         'store_full_solution': True,
     }
     mpc.set_param(**setup_mpc)
-    mterm = (target_state[0] - model.x['x0'])**2 + (target_state[1] - model.x['x1'])**2 + (target_state[2] - model.x['x2'])**2 + (target_state[3] - model.x['x3'])**2 + (target_state[4] - model.x['x4'])**2 + (target_state[5] - model.x['x5'])**2
-    # mterm = (target_state[0] - model.x['x0'])**2 + (target_state[1] - model.x['x1'])**2 + (target_state[4] - model.x['theta'])**2
+    print(target_state)
+    # mterm = (target_state[0] - model.x['x0'])**2 + (target_state[1] - model.x['x1'])**2 + (target_state[2] - model.x['x2'])**2 + (target_state[3] - model.x['x3'])**2 + (target_state[4] - model.x['x4'])**2 + (target_state[5] - model.x['x5'])**2
+    mterm = (target_state[0] - model.x['x0'])**2 + (target_state[1] - model.x['x1'])**2 + (target_state[4] - model.x['x4'])**2
     lterm = mterm
     mpc.set_objective(mterm=mterm, lterm=lterm)
-    mpc.set_rterm(u0=100, u1=100)
+    mpc.set_rterm(u0=1e-2, u1=1e-2)
 
     # Lower bounds on states:
     mpc.bounds['lower','_x', 'x0'] = -10
@@ -129,7 +136,7 @@ def create_lander_model(library, coeffs):
     for term in coeffs:
         expr_str = ""
         for i in range(len(term)):
-            if term[i] > 0.05:
+            if float(term[i]) > 0.1:
                 if len(expr_str) > 0:
                     expr_str += "+ "
                 expr_str += f"{term[i]}*{library[i]}"
@@ -162,16 +169,19 @@ def run_episode(model, states):
     state, info = demo_env.reset(options={"target_state" : states[0]})
 
     for target_state in states:
+        k = 0
         done = False
         demo_env.unwrapped.set_target_state(np.array(target_state, dtype=np.float32))
         mpc = setup_mpc(model, target_state, 0.02, 120)
-        mpc.x0 = state
-        mpc.set_initial_guess()
         # === Control Loop ===
         while not done:
             print(state)
             print("State input to MPC:", state)
-            action = mpc.make_step(state)  # Get optimal control action
+            if k % 5 == 0:
+                k = 0
+                mpc.x0 = state
+                mpc.set_initial_guess()
+                action = mpc.make_step(state)  # Get optimal control action
             main_thrust = float(action[0])
             side_thrust = float(action[1])
             print(main_thrust, side_thrust)
@@ -181,6 +191,7 @@ def run_episode(model, states):
             # gym_action = np.array([0, -1])
             state, reward, terminated, truncated, info = demo_env.step(gym_action)
             done = terminated or truncated or abs(reward) > 999
+            k += 1
 
     demo_env.close()
     print(f"Final demonstration video recorded and saved in: {video_folder}")

@@ -2,8 +2,9 @@
 from agents.ppo_agent import PPOAgent
 from agents.sac_agent import SACAgent
 from agents.mpc_agent import MPCAgent
+from agents.sindy_agent import SINDyAgent
 
-agents = [PPOAgent, SACAgent, MPCAgent]
+agents = [PPOAgent, SACAgent, MPCAgent, SINDyAgent]
 
 def get_agent_class(agent_name):
     for cls in agents:

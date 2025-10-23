@@ -1,116 +1,144 @@
-from sindy_rl.dynamics import EnsembleSINDyDynamicsModel
-from Sindy_Env_Wrapper import LunarLanderSindy
-from pysindy import PolynomialLibrary
-from pysindy import FourierLibrary
-import pysindy as ps
-import mpc
 import numpy as np
-from mpc import MPCPolicy
 import copy
-from uncertainty_explorer import find_high_uncertainty_states
+from pysindy import PolynomialLibrary, FourierLibrary, GeneralizedLibrary
+import pysindy as ps
+import gymnasium as gym
+import custom_lunar_lander_no_target
+import custom_environment_wrapper
+from stable_baselines3 import SAC
 
-combined_library = ps.GeneralizedLibrary([
-    ps.PolynomialLibrary(degree=2),
-    ps.FourierLibrary(n_frequencies=2)
+# Import sindy_rl components
+from sindy_rl.env import rollout_env
+from sindy_rl.policy import RandomPolicy, BasePolicy
+from sindy_rl.dynamics import EnsembleSINDyDynamicsModel
+
+# Import custom components
+from Sindy_Env_Wrapper import LunarLanderSindy
+from mpc import MPCPolicy
+from uncertainty_explorer import find_high_uncertainty_states
+from coupled_fourier_library import CoupledFourierLibrary
+
+class RLPolicy(BasePolicy):
+    '''
+    A random policy
+    '''
+    def __init__(self, model, seed=0):
+        '''
+        Inputs: 
+            action_space: (gym.spaces) space used for sampling
+            seed: (int) random seed
+        '''
+        self.model = model
+        
+    def compute_action(self, obs):
+        a,_ = model.predict(obs)
+        return a
+    
+    def set_magnitude_(self, mag):
+        self.magnitude = mag
+
+# Map Gym state to MPC state format
+def gym_state_to_mpc(self, state):
+    x, y, theta, vx, vy, omega, *_ = state
+    # Multipliers from Lunar Lander
+    return np.array([x * 10, y * 6.666, vx * 5, vy * 7.5, theta, omega * 2.5])
+
+def three_state_reward(state, target_state, weights):
+    distance = np.sqrt(np.sum(weights * (state[:3] - target_state[[0,1,4]]) ** 2))
+    reward = -distance
+    if distance < 0.01:
+        reward += 10
+    return reward
+
+def three_state_obs(obs, target_state, weights):
+    pos_obs = obs[[0,1,4]]
+    return np.concatenate((pos_obs, obs[[2,3,5]]), dtype=np.float32)
+    # return np.concatenate((pos_obs, obs[[2,3,5]]), dtype=np.float32)
+
+def target_state_fn(obs_space):
+    low = np.array([-1, -0.2, -2*np.pi])
+    high = np.array([1, 1.5, 2*np.pi])
+    return np.array([0, 0, 0])
+    # return np.random.uniform(low, high)
+    while True:
+        mask = np.random.random(3) < 0.5
+        result = mask * np.random.uniform(low, high)
+        if np.any(result != 0):
+            return result
+
+def weights_generation_fn():
+    while True:
+        mask = np.random.random(3) < 0.5
+        result = mask * np.random.random(3)
+        if np.any(result != 0):
+            print(result / np.max(result))
+            return result / np.max(result)
+
+# --- Parallel environment ---
+def make_env(seed=None):
+    def _init():
+        env = gym.make("CustomLunarLander-v0", continuous=True)
+        env = custom_environment_wrapper.CustomEnvironmentWrapper(env, three_state_obs, three_state_reward,
+                                        target_state_fn, weights_generation_fn)
+        # if seed is not None:
+        #     env.seed(seed)
+        return env
+    return _init()
+
+env = LunarLanderSindy.make_env()
+# model = SAC.load("models/SAC_Unweighted_9_States_Sparse", env=env)
+
+random_policy = RandomPolicy(env.action_space)
+
+# Build combined feature library (polynomial + Fourier terms)
+combined_library = GeneralizedLibrary([
+    PolynomialLibrary(degree=1),
+    CoupledFourierLibrary(2)
+    # FourierLibrary(n_frequencies=1)
 ])
 
+# Define dynamics configuration
 dyna_config = {
     'dt': 0.02,
-    'discrete': False,
-    
-    # Optimizer config 
+    'discrete': True,  # Discrete-time formulation
     'optimizer': {
       'base_optimizer': {
         'name': 'STLSQ',
         'kwargs': {
-        #   'alpha': 5.0e-5,
-          'threshold': 0.1,
+          'alpha': 5.0e-5,
+          'threshold': 0.005,
             },
       },
-      # Ensemble Optimization config
+        # Ensemble Optimization config
       'ensemble': {
         'bagging': True,
         'library_ensemble': True,
         'n_models': 20,
       },
     },
-    # Dictionary/Libary Config
+        # Dictionary/Libary Config
     'feature_library': combined_library
 }
 
+# Initialize the ensemble SINDy model
 dyn_model = EnsembleSINDyDynamicsModel(dyna_config)
 
-from sindy_rl.env import rollout_env
-from sindy_rl.policy import RandomPolicy
+# Create the environment
+# random_policy = RLPolicy(model)
 
-env = LunarLanderSindy.make_env()
+# Collect an initial dataset
+traj_obs, traj_acts, traj_rews = rollout_env(env, random_policy, n_steps=10000, n_steps_reset=100)
 
+train_obs = traj_obs[1:]
+test_obs = traj_obs[0]
 
-random_policy = RandomPolicy(env.action_space)
-traj_obs, traj_acts, traj_rews = rollout_env(env, random_policy, n_steps = 20000, n_steps_reset=1000)
+train_acts = traj_acts[1:]
+test_acts = traj_acts[0]
+dyn_model.fit(train_obs, train_acts)
 
-for i in range(3):
+dyn_model.set_median_coef_()
+dyn_model.print()
 
-  train_obs = traj_obs[:-1]
-  test_obs = traj_obs[-1]
-
-  train_acts = traj_acts[:-1]
-  test_acts = traj_acts[-1]
-  dyn_model.fit(train_obs, train_acts)
-
-  print(dyn_model.set_median_coef_())
-  features = dyn_model.model.get_feature_names()
-  casadi_features = []
-  for symbol in features:
-      new_symbol = ""
-      for letter in symbol:
-          if letter.isspace():
-              new_symbol += "*"
-          elif letter == "^":
-              new_symbol += "**"
-          else:
-              new_symbol += letter
-      new_symbol = new_symbol.replace("sin", "ca.sin")
-      new_symbol = new_symbol.replace("cos", "ca.cos")
-      casadi_features.append(new_symbol)
-
-  print(casadi_features)
-      
-  dyn_model.print()
-  # with open("coefs.txt", "w+") as file:
-  #   file.write(str(dyn_model.get_coef_list()))
-  # print(features)
-  print(dyn_model.model.coefficients())
-  # exit()
-
-
-  target_states, uncertainty_scores = find_high_uncertainty_states(
-    dyn_model, traj_obs, traj_acts, 
-    n_states=5,          # How many states to explore
-    horizon=10,          # Multi-step rollout uncertainty
-    n_samples=100,
-    uncertainty_threshold=0.7  # Top 30% most uncertain
-    )
-
-  # mpc_model = mpc.create_lander_model(casadi_features, dyn_model.model.coefficients())
-  # mpc.run_episode(mpc_model, states)
-
-  mpc_policy = MPCPolicy(casadi_features, dyn_model.model.coefficients())
-  new_obs, new_acts, new_rews = mpc_policy.rollout_env(env, target_states)
-  # # assert(len(new_obs[0]) == len(new_acts[0]))
-  # # print("traj_obs", np.shape(traj_obs))
-  # # print("new_obs", np.shape(new_obs))
-  assert(len(traj_obs) == len(traj_acts))
-  (traj_obs.append(i) for i in copy.deepcopy(new_obs))
-  (traj_acts.append(i) for i in copy.deepcopy(new_acts))
-#   traj_obs = np.vstack((traj_obs, new_obs))
-#   traj_acts = np.vstack((traj_acts, new_acts))
-  # print(len(new_obs[0]))
-  # traj_obs, traj_acts, traj_rews = rollout_env(env, random_policy, n_steps = 1000, n_steps_reset=1000)
-
-
-
-import numpy as np
 median_obs = [test_obs[0]]
 
 for u in test_acts:
@@ -120,7 +148,31 @@ for u in test_acts:
 
 median_obs = np.array(median_obs)
 
+# Build CasADi-compatible feature list for MPC
+features = dyn_model.model.get_feature_names()
+casadi_features = []
+for f in features:
+    expr = f.replace(" ", "*").replace("^", "**")
+    expr = expr.replace("sin", "ca.sin").replace("cos", "ca.cos")
+    casadi_features.append(expr)
 
+coeffs = dyn_model.model.coefficients()
+library = casadi_features
+
+rhs_exprs = []
+for term in coeffs:
+    expr_str = ""
+    for i in range(len(term)):
+        if abs(float(term[i])) > 0.005:
+            if len(expr_str) > 0:
+                expr_str += " + "
+            expr_str += f"{term[i]}*{library[i]}"
+    rhs_exprs.append(expr_str)
+
+file_name = "odes.txt"
+with open(file_name, "w") as file:
+    for item in rhs_exprs:
+        file.write(item + "\n")
 
 # again for the mean observation
 dyn_model.set_mean_coef_()
@@ -132,8 +184,6 @@ for u in test_acts:
     mean_obs.append(x_new)
 
 mean_obs = np.array(mean_obs)
-
-
 
 from matplotlib import pyplot as plt
 
@@ -149,46 +199,17 @@ for i, ax in enumerate(axes.flatten()):
     ax.set_title(plt_labels[i])
     ax.legend()
 
-
-
-from tqdm import tqdm
-
-all_preds = []
-
-for idx in tqdm(range(20)):
-    dyn_model.set_idx_coef_(idx)
-    obs_list = [test_obs[0]]
-
-    for u in test_acts:
-        x = obs_list[-1]
-        try:
-            x_new = dyn_model.predict(x, u)
-            obs_list.append(x_new)
-        except ValueError:
-            print('!! Integration blew up !!') 
-            # backtrak just for plotting purposes.
-            obs_list = obs_list[:-10]
-            break
-        
-    obs_list = np.array(obs_list)
-    all_preds.append(obs_list)
-
-
-
-from matplotlib import pyplot as plt
-
-fig, axes  = plt.subplots(1,6, figsize=(25,6))
-
-for i, ax in enumerate(axes.flatten()):
-
-    ax.plot(test_obs[:,i], 'k--', label = 'test_data')
-    ax.plot(mean_obs[:, i], label = 'mean preds')
-    
-    for pred_obs in all_preds:
-        ax.plot(pred_obs[:, i], c='r', alpha = 0.1)
-    ax.legend()
-    ax.set_title(plt_labels[i])
-
 plt.show()
-
 dyn_model.save("pysindy_save.txt")
+
+target_states, uncertainty_scores = find_high_uncertainty_states(
+        dyn_model,
+        traj_obs,
+        traj_acts,
+        n_states=5,
+        horizon=1,
+        n_samples=100,
+        uncertainty_threshold=0.7
+    )
+
+print(target_states, uncertainty_scores)
