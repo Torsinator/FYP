@@ -1,3 +1,8 @@
+import rewards
+import re
+import json
+
+
 # -*- coding: utf-8 -*-
 """gpt-oss-(20B)-Fine-tuning.ipynb
 
@@ -75,10 +80,10 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 
 model = FastLanguageModel.get_peft_model(
     model,
-    r = 8, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+    r = 4, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
     target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
                       "gate_proj", "up_proj", "down_proj",],
-    lora_alpha = 16,
+    lora_alpha = 4,
     lora_dropout = 0, # Supports any, but = 0 is optimized
     bias = "none",    # Supports any, but = "none" is optimized
     # [NEW] "unsloth" uses 30% less VRAM, fits 2x larger batch sizes!
@@ -87,6 +92,8 @@ model = FastLanguageModel.get_peft_model(
     use_rslora = False,  # We support rank stabilized LoRA
     loftq_config = None, # And LoftQ
 )
+
+model.config.use_cache = False
 
 """### Reasoning Effort
 The `gpt-oss` models from OpenAI include a feature that allows users to adjust the model's "reasoning effort." This gives you control over the trade-off between the model's performance and its response speed (latency) which by the amount of token the model will use to think.
@@ -102,79 +109,245 @@ The `gpt-oss` models offer three distinct levels of reasoning effort you can cho
 
 from transformers import TextStreamer
 
-messages = [
-    {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
-]
-inputs = tokenizer.apply_chat_template(
-    messages,
-    add_generation_prompt = True,
-    return_tensors = "pt",
-    return_dict = True,
-    reasoning_effort = "low", # **NEW!** Set reasoning effort to low, medium or high
-).to(model.device)
+# messages = [
+#     {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
+# ]
+# inputs = tokenizer.apply_chat_template(
+#     messages,
+#     add_generation_prompt = True,
+#     return_tensors = "pt",
+#     return_dict = True,
+#     reasoning_effort = "low", # **NEW!** Set reasoning effort to low, medium or high
+# ).to(model.device)
 
-_ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
+# _ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
 
-"""Changing the `reasoning_effort` to `medium` will make the model think longer. We have to increase the `max_new_tokens` to occupy the amount of the generated tokens but it will give better and more correct answer"""
+# """Changing the `reasoning_effort` to `medium` will make the model think longer. We have to increase the `max_new_tokens` to occupy the amount of the generated tokens but it will give better and more correct answer"""
 
-from transformers import TextStreamer
+# from transformers import TextStreamer
 
-messages = [
-    {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
-]
-inputs = tokenizer.apply_chat_template(
-    messages,
-    add_generation_prompt = True,
-    return_tensors = "pt",
-    return_dict = True,
-    reasoning_effort = "medium", # **NEW!** Set reasoning effort to low, medium or high
-).to(model.device)
+# messages = [
+#     {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
+# ]
+# inputs = tokenizer.apply_chat_template(
+#     messages,
+#     add_generation_prompt = True,
+#     return_tensors = "pt",
+#     return_dict = True,
+#     reasoning_effort = "medium", # **NEW!** Set reasoning effort to low, medium or high
+# ).to(model.device)
 
-_ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
+# _ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
 
-"""Lastly we will test it using `reasoning_effort` to `high`"""
+# """Lastly we will test it using `reasoning_effort` to `high`"""
 
-from transformers import TextStreamer
+# from transformers import TextStreamer
 
-messages = [
-    {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
-]
-inputs = tokenizer.apply_chat_template(
-    messages,
-    add_generation_prompt = True,
-    return_tensors = "pt",
-    return_dict = True,
-    reasoning_effort = "high", # **NEW!** Set reasoning effort to low, medium or high
-).to(model.device)
+# messages = [
+#     {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
+# ]
+# inputs = tokenizer.apply_chat_template(
+#     messages,
+#     add_generation_prompt = True,
+#     return_tensors = "pt",
+#     return_dict = True,
+#     reasoning_effort = "high", # **NEW!** Set reasoning effort to low, medium or high
+# ).to(model.device)
 
-_ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
+# _ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
 
 """<a name="Data"></a>
 ### Data Prep
 
 The `HuggingFaceH4/Multilingual-Thinking` dataset will be utilized as our example. This dataset, available on Hugging Face, contains reasoning chain-of-thought examples derived from user questions that have been translated from English into four other languages. It is also the same dataset referenced in OpenAI's [cookbook](https://cookbook.openai.com/articles/gpt-oss/fine-tune-transfomers) for fine-tuning. The purpose of using this dataset is to enable the model to learn and develop reasoning capabilities in these four distinct languages.
 """
+import re, json
+import rewards  # your helper module
+
+def compute_reward(prompts, completions, completion_ids, **reward_kwargs):
+    """Compute GRPO reward given model completion and expert reference (both formatted)."""
+
+    def extract_block(text, tag):
+        match = re.search(fr"<{tag}>(.*?)</{tag}>", text, re.S)
+        return match.group(1).strip() if match else ""
+
+    def safe_json(text):
+        try:
+            return json.loads(text)
+        except Exception:
+            return []
+
+    reward_values = []
+    print(f"kwargs: {reward_kwargs}")
+    print(f"completions : {completions}")
+    experts = reward_kwargs["response"]
+    print(f"experts : {experts}")
+    for completion, expert, context in zip(completions, experts, reward_kwargs["context"]):
+        try:
+            # Parse model output
+            reasoning_out = extract_block(completion, "reasoning")
+            traj_out = safe_json(extract_block(completion, "trajectory"))
+            weights_out = safe_json(extract_block(completion, "weights"))
+
+            # Parse expert
+            reasoning_exp = extract_block(expert, "reasoning")
+            traj_exp = safe_json(extract_block(expert, "trajectory"))
+            weights_exp = safe_json(extract_block(expert, "weights"))
+        except Exception as e:
+            raise ValueError(f"[RewardParseError] {e}")
+
+        # Sub-rewards
+        r_format = rewards.format_reward(completion)
+        r_bounds = rewards.bounds_reward(
+            traj_out, weights_out,
+            reward_kwargs["bounds_min"][0], reward_kwargs["bounds_max"][0]
+        )
+        r_traj = rewards.trajectory_reward(traj_exp, traj_out)
+        r_weights = rewards.weights_reward(weights_exp, weights_out)
+        r_reasoning = rewards.reasoning_reward(reasoning_out, context["states"])
+
+        # Weighted sum
+        total = (
+            0.3 * r_format +
+            0.3 * r_bounds +
+            0.2 * r_traj +
+            0.1 * r_weights +
+            0.1 * r_reasoning
+        )
+        reward_values.append(total)
+
+    return reward_values
+
+
+
+def generate_system_prompt(context, states, max, min, current_state):
+    return f"""
+{context}
+
+TASK
+Generate a minimal, sufficient **trajectory** of target states and a matching 2D array of per-variable **weights** for the given command.
+
+DEFINITIONS
+States: {states}
+Bounds: min = {min}, max = {max}
+Current state: {current_state}
+
+STRICT OUTPUT SPEC (MUST FOLLOW EXACTLY)
+- If the instruction is ambiguous or any required info is missing, output **only**:
+  <clarification>clear_text_explaining_what_is_missing_or_ambiguous</clarification>
+  (No other text allowed.)
+
+- Otherwise output **exactly these three tags in this order** and nothing else:
+  1) <reasoning>...</reasoning>
+     - Free text explaining assumptions and why each target state & weighting was chosen.
+     - How this trajectory meets the user's request
+     - Keep it concise (max ~6 short sentences).
+  2) <trajectory>[[...],[...],...]</trajectory>
+     - A 2D JSON array (list of rows) of numeric **floats** only.
+     - Each row = one target state; each column corresponds to the state variables listed above.
+     - Use decimal notation (e.g. 0.125 or 1.0). **Do not** use scientific notation (`1e-3`), expressions, variable names, comments, or trailing commas.
+  3) <weights>[[...],[...],...]</weights>
+     - A 2D JSON array of floats with **exactly the same shape** as `<trajectory>`.
+     - Every element must be in range [0.0, 1.0].
+     - Weights are the importance per state variable in the target state not the state itself. These can change at different target states.
+     - No extra text or formatting.
+
+VALIDATION STEPS (you must perform these checks before returning)
+1. Shape: number of columns in each `<trajectory>` row == number of state variables in `States`. Number of rows in `<weights>` == number of rows in `<trajectory>`. Each corresponding row length must match.
+2. Bounds: every trajectory value must satisfy `min <= value <= max` for the corresponding state variable.
+3. Weights: every weight must satisfy `0.0 <= weight <= 1.0`.
+4. Formatting: `<trajectory>` and `<weights>` must be valid JSON arrays containing only numeric literals (no comments, no text).
+If any check fails, **do not** output reasoning or arrays — output **only** a `<clarification>` tag listing the failing checks (short, comma-separated).
+
+ADDITIONAL RULES
+- Do not include any other tags or text outside the tags described above.
+- Do not guess: if you must assume something to proceed, stop and request clarification using `<clarification>`.
+- Include the current state as the first entry in the trajectory
+
+EXAMPLE (format only — replace with real numbers that respect bounds and shapes)
+<reasoning>Concise reason for states and weights.</reasoning>
+<trajectory>[[0.0, 1.0, 0.5], [0.2, 0.9, 0.1]]</trajectory>
+<weights>[[1.0, 0.8, 0.2], [0.9, 0.7, 0.1]]</weights>
+
+Now produce the output for the command that follows.
+"""
+
+def format_output(reasoning, trajectory, weights):
+    return f'''<reasoning>{reasoning}</reasoning>
+<trajectory>{trajectory}</trajectory>
+<weights>{weights}</weights>
+'''
+
 
 def formatting_prompts_func(examples):
+    instruction = examples["instruction"]
+    system = examples["system"]
+    states = examples["states"]
+    maxv = examples["bounds_max"]
+    minv = examples["bounds_min"]
+    reasoning = examples["reasoning"]
+    trajectory = examples["trajectory"]
+    weights = examples["weights"]
+
+    prompts, responses = [], []
+
+    for i in range(len(instruction)):
+        # build system/user/assistant messages
+        cs_i = trajectory[i].find("]")
+        cs = trajectory[i][1:cs_i + 1]
+        convo = [
+            {"role": "system", "content": generate_system_prompt(system[i], states[i], maxv[i], minv[i], cs)},
+            {"role": "user", "content": instruction[i]},
+        ]
+        prompt_text = tokenizer.apply_chat_template(convo, tokenize=False, add_generation_prompt=True, reasoning_effort = "low")
+        response_text = format_output(reasoning[i], trajectory[i], weights[i])
+        prompts.append(prompt_text)
+        responses.append(response_text)
+
+    return {
+        "prompt": prompts,
+        "response": responses,
+    }
+
+
+def flatten_data(example):
+    c, o = example["context"], example["output"]
+    return {
+        "instruction": example["instruction"],
+        "system": c["system"],
+        "states": json.dumps(c["states"]),
+        "bounds_min": c["bounds"]["min"],
+        "bounds_max": c["bounds"]["max"],
+        "reasoning": o["reasoning"],
+        "trajectory": json.dumps(o["trajectory"]),   # already a string
+        "weights": json.dumps(o["weights"]),         # already a string
+    }
+
+def formatting_prompts_func_(examples):
     convos = examples["messages"]
+    print(convos[0])
+    exit()
     texts = [tokenizer.apply_chat_template(convo, tokenize = False, add_generation_prompt = False) for convo in convos]
+    print(texts[0])
+    exit()
     return { "text" : texts, }
 pass
 
 from datasets import load_dataset
 
-dataset = load_dataset("HuggingFaceH4/Multilingual-Thinking", split="train")
-dataset
+# dataset = load_dataset("HuggingFaceH4/Multilingual-Thinking", split="train")
+dataset = load_dataset("json", data_files="gpt_dataset.json", split="train")
 
 """To format our dataset, we will apply our version of the GPT OSS prompt"""
 
 from unsloth.chat_templates import standardize_sharegpt
-dataset = standardize_sharegpt(dataset)
+# dataset = standardize_sharegpt(dataset)
+dataset = dataset.map(flatten_data)
 dataset = dataset.map(formatting_prompts_func, batched = True,)
 
 """Let's take a look at the dataset, and check what the 1st example shows"""
 
-print(dataset[0]['text'])
+# print(dataset[0]['text'])
 
 """What is unique about GPT-OSS is that it uses OpenAI [Harmony](https://github.com/openai/harmony) format which support conversation structures, reasoning output, and tool calling.
 
@@ -184,25 +357,61 @@ Now let's train our model. We do 60 steps to speed things up, but you can set `n
 """
 
 from trl import SFTConfig, SFTTrainer
-trainer = SFTTrainer(
-    model = model,
-    tokenizer = tokenizer,
-    train_dataset = dataset,
-    args = SFTConfig(
-        per_device_train_batch_size = 1,
-        gradient_accumulation_steps = 4,
-        warmup_steps = 5,
-        # num_train_epochs = 1, # Set this for 1 full training run.
-        max_steps = 30,
-        learning_rate = 2e-4,
-        logging_steps = 1,
-        optim = "adamw_8bit",
-        weight_decay = 0.01,
-        lr_scheduler_type = "linear",
-        seed = 3407,
-        output_dir = "outputs",
-        report_to = "none", # Use this for WandB etc
-    ),
+from trl import GRPOTrainer, GRPOConfig
+# trainer = GRPOTrainer(
+#     model = model,
+#     tokenizer = tokenizer,
+#     train_dataset = dataset,
+#     reward_funcs = compute_reward,
+#     args = GRPOConfig(
+#         max_completion_length=max_seq_length,
+#         per_device_train_batch_size = 1,
+#         gradient_accumulation_steps = 4,
+#         warmup_steps = 5,
+#         num_train_epochs = 1,        # same as before
+#         learning_rate = 2e-4,
+#         logging_steps = 1,
+#         optim = "adamw_8bit",
+#         weight_decay = 0.01,
+#         lr_scheduler_type = "linear",
+#         seed = 3407,
+#         output_dir = "outputs",
+#         report_to = "none",          # same as before
+#     ),
+# )
+maximum_length = 1024
+max_prompt_length     = maximum_length + 1
+max_completion_length = 2048 - max_prompt_length
+
+training_args = GRPOConfig(
+    temperature=1.0,
+    learning_rate=5e-5,
+    weight_decay=0.01,
+    warmup_ratio=0.1,
+    lr_scheduler_type="linear",
+    optim="adamw_8bit",
+    logging_steps=1,
+    per_device_train_batch_size=1,
+    gradient_accumulation_steps=1,    # bump to 4 for smoother reward signals
+    num_generations=2,                # lower if you OOM
+    max_prompt_length=max_prompt_length,
+    max_completion_length=max_completion_length,
+    # max_steps=1000,                   # or set num_train_epochs=1
+    num_train_epochs=1,
+    save_steps=100,
+    report_to="none",
+    output_dir="outputs"
+)
+
+trainer = GRPOTrainer(
+    model=model,
+    processing_class=tokenizer,
+    reward_funcs=compute_reward,
+    args=training_args,
+    train_dataset=dataset,
+    # Optional eval split:
+    # train_dataset=new_dataset["train"],
+    # eval_dataset=new_dataset["test"],
 )
 
 # @title Show current memory stats
@@ -233,28 +442,28 @@ print(f"Peak reserved memory for training % of max memory = {lora_percentage} %.
 Let's run the model! You can change the instruction and input - leave the output blank!
 """
 
-messages = [
-    {"role": "system", "content": "reasoning language: French\n\nYou are a helpful assistant that can solve mathematical problems."},
-    {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
-]
-inputs = tokenizer.apply_chat_template(
-    messages,
-    add_generation_prompt = True,
-    return_tensors = "pt",
-    return_dict = True,
-    reasoning_effort = "medium",
-).to(model.device)
-from transformers import TextStreamer
-_ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
+# messages = [
+#     {"role": "system", "content": "reasoning language: French\n\nYou are a helpful assistant that can solve mathematical problems."},
+#     {"role": "user", "content": "Solve x^5 + 3x^4 - 10 = 3."},
+# ]
+# inputs = tokenizer.apply_chat_template(
+#     messages,
+#     add_generation_prompt = True,
+#     return_tensors = "pt",
+#     return_dict = True,
+#     reasoning_effort = "medium",
+# ).to(model.device)
+# from transformers import TextStreamer
+# _ = model.generate(**inputs, max_new_tokens = 64, streamer = TextStreamer(tokenizer))
 
-"""<a name="Save"></a>
-### Saving, loading finetuned models
-To save the final model as LoRA adapters, either use Huggingface's `push_to_hub` for an online save or `save_pretrained` for a local save.
+# """<a name="Save"></a>
+# ### Saving, loading finetuned models
+# To save the final model as LoRA adapters, either use Huggingface's `push_to_hub` for an online save or `save_pretrained` for a local save.
 
-**[NOTE]** Currently finetunes can only be loaded via Unsloth in the meantime - we're working on vLLM and GGUF exporting!
-"""
+# **[NOTE]** Currently finetunes can only be loaded via Unsloth in the meantime - we're working on vLLM and GGUF exporting!
+# """
 
-model.save_pretrained("finetuned_model")
+model.save_pretrained("planning_model")
 # model.push_to_hub("hf_username/finetuned_model", token = "hf_...") # Save to HF
 
 """To run the finetuned model, you can do the below after setting `if False` to `if True` in a new instance."""

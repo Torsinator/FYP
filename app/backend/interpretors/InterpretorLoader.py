@@ -1,7 +1,8 @@
 # import models
 from interpretors.gptoss import GPT_OSS_Model
+from interpretors.gptoss_tuned import GPT_OSS_Model_Tuned
 
-interpretors = [GPT_OSS_Model]
+interpretors = [GPT_OSS_Model, GPT_OSS_Model_Tuned]
 
 def get_interpretor_class(interp_name):
     for cls in interpretors:

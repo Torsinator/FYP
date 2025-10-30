@@ -55,6 +55,7 @@ STRICT OUTPUT SPEC (MUST FOLLOW EXACTLY)
 - Otherwise output **exactly these three tags in this order** and nothing else:
   1) <reasoning>...</reasoning>
      - Free text explaining assumptions and why each target state & weighting was chosen.
+     - How this trajectory meets the user's request
      - Keep it concise (max ~6 short sentences).
   2) <trajectory>[[...],[...],...]</trajectory>
      - A 2D JSON array (list of rows) of numeric **floats** only.
@@ -63,6 +64,7 @@ STRICT OUTPUT SPEC (MUST FOLLOW EXACTLY)
   3) <weights>[[...],[...],...]</weights>
      - A 2D JSON array of floats with **exactly the same shape** as `<trajectory>`.
      - Every element must be in range [0.0, 1.0].
+     - Weights are the importance per state variable in the target state not the state itself. These can change at different target states.
      - No extra text or formatting.
 
 VALIDATION STEPS (you must perform these checks before returning)

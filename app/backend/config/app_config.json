@@ -6,8 +6,8 @@
     },
     "agent" : 
     {
-        "type" : "SINDyAgent",
+        "type" : "ShapedSINDyAgent",
         "model" : "agents/models/SINDy.txt"
     },
-    "interpretor" : "GPT_OSS_Model"
+    "interpretor" : "GPT_OSS_Model_Tuned"
 }

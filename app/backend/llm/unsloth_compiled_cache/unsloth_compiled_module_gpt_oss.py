@@ -1,12 +1,12 @@
 """
-2025.9.5
-2025.9.4
-4.56.1
+2025.10.12
+2025.10.11
+4.57.1
 0.23.0
 __UNSLOTH_VERSIONING__
 """
 
-# Unsloth Zoo - Utilities for Unsloth
+# Unsloth auto generated code
 # Copyright 2023-present Daniel Han-Chen, Michael Han-Chen & the Unsloth team. All rights reserved.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -22,9 +22,11 @@ __UNSLOTH_VERSIONING__
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 import os
 import torch
 import importlib.util
+import math
 if importlib.util.find_spec("unsloth_studio") is None:
     UNSLOTH_STUDIO_ENABLED = False
 else:
@@ -35,7 +37,7 @@ import math
 
 UNSLOTH_ENABLE_LOGGING = os.environ.get("UNSLOTH_ENABLE_LOGGING", "0") == "1"
 UNSLOTH_ENABLE_CCE = os.environ.get("UNSLOTH_ENABLE_CCE", "1") == "1"
-UNSLOTH_COMPILE_DISABLE = os.environ.get("UNSLOTH_COMPILE_DISABLE", "0") == "1"
+UNSLOTH_COMPILE_DISABLE = os.environ.get("UNSLOTH_COMPILE_DISABLE", "0") in ("1", "partial",)
 
 import logging
 logger_compiler = logging.getLogger(__name__)
@@ -209,7 +211,9 @@ def GptOssExperts_forward(self, hidden_states: torch.Tensor, router_indices=None
     if hidden_states.device.type == "cpu" or self.training:
         next_states = torch.zeros_like(hidden_states, dtype=hidden_states.dtype, device=hidden_states.device)
         with torch.no_grad():
-            expert_mask = torch.nn.functional.one_hot(router_indices, num_classes=num_experts)
+            expert_mask = torch.nn.functional.one_hot(
+                router_indices, num_classes=num_experts + 1
+            )  # masking is also a class
             expert_mask = expert_mask.permute(2, 1, 0)
             # we sum on the top_k and on the sequence length to get which experts
             # are hit this time around
@@ -217,6 +221,9 @@ def GptOssExperts_forward(self, hidden_states: torch.Tensor, router_indices=None
         for expert_idx in expert_hit[:]:
             # expert_idx only have 1 element, so we can use scale for fast indexing
             expert_idx = expert_idx[0]
+            # skip masking index
+            if expert_idx == num_experts:
+                continue
             with torch.no_grad():
                 _, token_idx = torch.where(expert_mask[expert_idx])
             current_state = hidden_states[token_idx]
@@ -263,7 +270,7 @@ class GptOssExperts(nn.Module):
         return GptOssExperts_forward(self, hidden_states, router_indices, routing_weights)
 
 
-@torch.compiler.disable(recursive = False)
+@torch.compile(fullgraph = True, dynamic = True, options = torch_compile_options)
 def GptOssTopKRouter_forward(self, hidden_states):
     hidden_states = hidden_states.reshape(-1, self.hidden_dim)
     router_logits = F.linear(hidden_states, self.weight, self.bias)  # (seq_len, num_experts)
@@ -552,7 +559,7 @@ def GptOssForCausalLM_forward(
     hidden_states = outputs.last_hidden_state
     # Only compute necessary logits, and do not upcast them to float if we are not computing the loss
     slice_indices = slice(-logits_to_keep, None) if isinstance(logits_to_keep, int) else logits_to_keep
-    logits = EMPTY_LOGITS
+    logits = self.lm_head(hidden_states[:, slice_indices, :]) if os.environ.get('UNSLOTH_RETURN_LOGITS', '0') == '1' else EMPTY_LOGITS
     loss = None
     NOT_RETURN_LOGITS = os.environ.get('UNSLOTH_RETURN_LOGITS', '0') == '0'
     RETURN_HIDDEN_STATES = os.environ.get("UNSLOTH_RETURN_HIDDEN_STATES", "0") == "1"
@@ -565,16 +572,19 @@ def GptOssForCausalLM_forward(
         if 'loss_kwargs' in all_locals:
             __kwargs = all_locals['loss_kwargs']
             if type(__kwargs) is dict:
-                n_items = __kwargs.get("num_items_in_batch", None) or __kwargs.get("n_items", None)
+                n_items = __kwargs.get("num_items_in_batch", None)
+                if n_items is None: n_items = __kwargs.get("n_items", None)
         if n_items is None and 'kwargs' in all_locals:
             __kwargs = all_locals['kwargs']
             if type(__kwargs) is dict:
-                n_items = __kwargs.get("num_items_in_batch", None) or __kwargs.get("n_items", None)
+                n_items = __kwargs.get("num_items_in_batch", None)
+                if n_items is None: n_items = __kwargs.get("n_items", None)
         if n_items is None:
             all_locals = all_locals.values()
             for __kwargs in all_locals:
                 if type(__kwargs) is dict:
-                    n_items = __kwargs.get("num_items_in_batch", None) or __kwargs.get("n_items", None)
+                    n_items = __kwargs.get("num_items_in_batch", None)
+                    if n_items is None: n_items = __kwargs.get("n_items", None)
                     break
     pass
     

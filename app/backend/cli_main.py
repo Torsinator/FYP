@@ -89,13 +89,14 @@ def main():
 
     # Set up interpretor and agent
     interpretor = get_interpretor_class(interp_name)(env_cfg)    # Get class and call constructor
-    print("interpretor set up")
     
     agent = get_agent_class(agent_type).load(agent_model_path)
     print("agent set up")
     
     # load the interpretor model (large)
     interpretor.load()
+
+    print("interpretor set up")
 
     print("all set up")
 

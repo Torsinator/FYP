@@ -187,7 +187,7 @@ mean_obs = np.array(mean_obs)
 
 from matplotlib import pyplot as plt
 
-fig, axes  = plt.subplots(1,6, figsize=(25,6))
+fig, axes  = plt.subplots(3,2, figsize=(12,20))
 
 plt_labels = [r'$x$', r'$y$', r'$vx$', r'$vy$', r'$\theta$', r'$\omega$']
 

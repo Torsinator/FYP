@@ -71,7 +71,7 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 system_prompt = f'''{config.get("context")}.
 Give a trajectory of states and weights for the following command.
 The trajectory must have sufficient although minimal target states to capture the complete expected behaviour. The states do not need to be over a complete time sequence, but just represent targets.
-Each variable in each target state must have a weight value between 0 an 1 depending on how important the variable is to obtain the desired user behaviour. IMPORTANT: This is not the significance of the whole state, but each variable within the state and will often be 0.
+Each variable in each target state must have a weight value between 0 an 1 depending on how important the variable is to obtain the desired user behaviour. IMPORTANT: This is not the significance of the whole state, but each variable within the state and will often change throughout the trajectory.
 The states are {config.get("states")} with max and min values of {config.get("bounds").get("max")} and {config.get("bounds").get("min")}. Do not exceed these bounds.
 Reasoning should be given for each state and weighting and be presented in the <reasoning> </reasoning> tags.
 Trajectory should be given in the <trajectory></trajectory> tags and be presented as a 2d array of states.

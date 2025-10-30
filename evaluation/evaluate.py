@@ -33,7 +33,7 @@ ppo_models = [
 # Combine for one loop
 all_models = sac_models + ppo_models
 
-# all_models = [MPC]
+# all_models = [Minimum_Distance_Shaped_Cost_SINDy]
 
 # Evaluate each model in turn
 for model in all_models:
@@ -48,7 +48,7 @@ for model in all_models:
     def calculate_error(target, current):
         # print(target)
         # print(current)
-        diff = target + current
+        diff = target - current
         return np.linalg.norm(diff), diff
 
     # Evaluate each target state
@@ -66,7 +66,7 @@ for model in all_models:
         #     agent.set_target_state(target)
         # Record the starting position so we can measure how far the goal is
         obs_vec = obs.get("observation", obs) if isinstance(obs, dict) else obs
-        start_state = np.array(obs_vec[[0, 1, 2]], dtype=np.float32)
+        start_state = np.array(obs_vec[[0, 1, 4]], dtype=np.float32)
         target_distance = np.linalg.norm(target - start_state)
 
         done = False
@@ -81,9 +81,9 @@ for model in all_models:
 
             obs_vec = obs.get("observation", obs) if isinstance(obs, dict) else obs
             if "6" in model.__name__:
-                obs_vec, error, diff = calculate_error_6_state(target, obs_vec[[0, 1, 2]])
+                obs_vec, error, diff = calculate_error_6_state(target, obs_vec[[0, 1, 4]])
             else:
-                error, diff = calculate_error(target, obs_vec[[0, 1, 2]])
+                error, diff = calculate_error(target, obs_vec[[0, 1, 4]])
 
             if error < best_error:
                 best_error = error
