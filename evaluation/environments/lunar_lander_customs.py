@@ -435,8 +435,8 @@ class LunarLanderMPC(gym.Wrapper):
     # Map Gym state to MPC state format
     def set_target_state(self, target_state):
         self.target = target_state
-        self.env.set_target_state(target_state)
+        # self.env.env.set_target_state(target_state)
 
     def set_weights(self, weights):
         self.weights = weights
-        self.env.set_weights(weights)
+        # self.env.set_weights(weights)

@@ -230,7 +230,7 @@ class UnslothAlignPropConfig(AlignPropConfig):
     
     def __init__(
         self,
-        exp_name = 'gpt_oss_(20b)_fine_tuning',
+        exp_name = 'LLM_Comparison',
         run_name = '',
         seed = 3407,
         log_with = None,
