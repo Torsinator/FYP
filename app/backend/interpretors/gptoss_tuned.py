@@ -73,7 +73,7 @@ If any check fails, **do not** output reasoning or arrays — output **only** a 
 
 ADDITIONAL RULES
 - Do not include any other tags or text outside the tags described above.
-- Do not guess: if you must assume something to proceed, stop and request clarification using `<clarification>`.
+- Do not guess: if you must assume something to proceed, stop and request clarification using `<clarification></clarification>`.
 - You may include an initial state in `<trajectory>` to represent moving from `Current state` to the first target if appropriate.
 
 EXAMPLE (format only — replace with real numbers that respect bounds and shapes)

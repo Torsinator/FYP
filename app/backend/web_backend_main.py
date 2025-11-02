@@ -86,13 +86,13 @@ def interpolate(values, episode_length, hz):
 
 def run_episode(env, model, traj, weights):
     # Interpolate to per-timestep targets
-    states_interp = interpolate(traj, EPISODE_LENGTH_SECONDS, HZ)
+    # states_interp = interpolate(traj, EPISODE_LENGTH_SECONDS, HZ)
 
-    weights_interp = interpolate(weights, EPISODE_LENGTH_SECONDS, HZ)
+    # weights_interp = interpolate(weights, EPISODE_LENGTH_SECONDS, HZ)
 
-    # states_interp = traj
+    states_interp = traj
     # # weights_interp = weights[:, [0,1,4]]
-    # weights_interp = weights
+    weights_interp = weights
 
     print(f"debug weights: {weights}")
     print(f"debug states: {states_interp}")

@@ -45,7 +45,7 @@ def gym_state_to_mpc(state):
         x, y, theta, *_ = state
         return np.array([x * 10, y * 6.666, theta])
 
-class ShapedSINDyAgent(Agent):
+class OTR_Improved(Agent):
     def __init__(self, gym_env, ode_file):
         self.env = gym_env
         self.last_target = np.array([])
@@ -53,7 +53,7 @@ class ShapedSINDyAgent(Agent):
 
     @staticmethod
     def load(model_path, gym_env=None) -> Agent:
-        return ShapedSINDyAgent(gym_env, model_path)
+        return OTR_Improved(gym_env, model_path)
     
     def set_env(self, gym_env):
         self.env = gym_env
@@ -80,11 +80,10 @@ class ShapedSINDyAgent(Agent):
         print(weights)
         self.last_target = target_state
         # mterm = (target_state[0] - model.x['x'])**2 + (target_state[1] - model.x['y'])**2 + (target_state[2] - model.x['vx'])**2 + (target_state[3] - model.x['vy'])**2 + (target_state[4] - model.x['theta'])**2 + (target_state[5] - model.x['omega'])**2
+
         lterm = weights[0] * (target_state[0] - model.x['x0'])**2 + weights[1] * (target_state[1] - model.x['x1'])**2 + weights[2] * (target_state[2] - model.x['x4'])**2
         mterm = ca.SX(0)
         # lterm = ca.SX(0)
-        mpc.set_objective(mterm=mterm, lterm=lterm)
-        mpc.set_rterm(u0=1, u1=1)
 
         # Lower bounds on states:
         mpc.bounds['lower','_x', 'x0'] = -10
@@ -121,6 +120,12 @@ class ShapedSINDyAgent(Agent):
 
         dists = ca.vertcat(*distances)
         soft_min = (ca.sum1((dists + epsilon)**(-p)))**(-1/p)
+
+        def g(dist, k=20.0, eps = 0.2):
+            return 1/(1+ca.exp(-k * (eps - dist)))
+
+        mpc.set_objective(mterm=mterm, lterm=(1-g(soft_min)) * lterm)
+        mpc.set_rterm(u0=1, u1=1)
 
         mpc.nlp_obj += reward_weight * soft_min
         mpc.create_nlp()

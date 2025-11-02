@@ -116,5 +116,5 @@ class Lunar_Lander_MPC_Env(gym.Wrapper):
         dist = np.linalg.norm(diff, axis=-1)
 
         # sparse reward example: 0 if within tolerance, -1 otherwise
-        return np.where(dist < 0.05, 1.0, -1.0).astype(np.float32)
+        return np.where(dist < 0.2, 1.0, -1.0).astype(np.float32)
         # return dist
