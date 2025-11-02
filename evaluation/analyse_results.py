@@ -15,7 +15,7 @@ plt.rcParams["axes.ymargin"] = 0
 # 2. Configuration
 # --------------------------------------------------
 RESULTS_DIR = Path("results")
-PLOTS_DIR = Path("plots/combined")
+PLOTS_DIR = Path("tttttttt/combined")
 PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
 OBS_SPACE_MAX = np.array([2, 1.5, 4 * np.pi])
@@ -23,17 +23,17 @@ START_STATE = np.array([0, 1.4, 0], dtype=np.float32)
 THRESHOLDS = [0.1, 0.2, 0.5]
 
 PPO_MODELS = [
-    "PPO_Unweighted_9_States_Sparse",
-    "PPO_Unweighted_9_States_Dense",
-    "PPO_Unweighted_6_States_Sparse",
-    "PPO_Unweighted_6_States_Dense",
+    "PPO.dense.concat",
+    "PPO.dense.diff",
+    "PPO.sparse.concat",
+    "PPO.sparse.diff",
 ]
 SAC_MODELS = [
-    "SAC_Unweighted_9_States_Sparse",
-    "SAC_Unweighted_9_States_Dense",
+    "SAC.dense",
+    "SAC.sparse",
 ]
-MPC_MODELS = ["MPC", "SINDy", "Optimistic_Target_Reaching (new)"]
-FAMILIES = {"PPO": PPO_MODELS, "SAC": SAC_MODELS, "MPC": MPC_MODELS}
+MPC_MODELS = ["MPC.analytical", "MPC.SINDy", "OTR.SINDy"]
+FAMILIES = {"PPO": PPO_MODELS, "SAC": SAC_MODELS, "Model Based": MPC_MODELS}
 
 # --------------------------------------------------
 # 3. Reference target distances

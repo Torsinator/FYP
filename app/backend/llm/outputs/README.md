@@ -4,9 +4,9 @@ library_name: transformers
 model_name: outputs
 tags:
 - generated_from_trainer
+- sft
 - unsloth
 - trl
-- grpo
 licence: license
 ---
 
@@ -31,7 +31,7 @@ print(output["generated_text"])
  
 
 
-This model was trained with GRPO, a method introduced in [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://huggingface.co/papers/2402.03300).
+This model was trained with SFT.
 
 ### Framework versions
 
@@ -43,17 +43,7 @@ This model was trained with GRPO, a method introduced in [DeepSeekMath: Pushing 
 
 ## Citations
 
-Cite GRPO as:
 
-```bibtex
-@article{shao2024deepseekmath,
-    title        = {{DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models}},
-    author       = {Zhihong Shao and Peiyi Wang and Qihao Zhu and Runxin Xu and Junxiao Song and Mingchuan Zhang and Y. K. Li and Y. Wu and Daya Guo},
-    year         = 2024,
-    eprint       = {arXiv:2402.03300},
-}
-
-```
 
 Cite TRL as:
     

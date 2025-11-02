@@ -78,7 +78,7 @@ plt.ylabel("Y")
 plt.legend()
 plt.grid(True)
 
-plt.show()
+# plt.show()
 
 
 

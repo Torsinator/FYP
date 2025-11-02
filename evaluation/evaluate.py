@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
+import scipy
 
 import agents.PPO as PPO
 import agents.SAC as SAC
@@ -17,7 +18,7 @@ weights_data = pd.read_csv("datasets/weights.csv")
 
 # List all model classes you want to compare
 sac_models = [
-    # SAC_Unweighted_9_States_Sparse, SAC_Unweighted_9_States_Dense,
+    SAC_Unweighted_9_States_Sparse, SAC_Unweighted_9_States_Dense,
     # SAC_Unweighted_6_States_Sparse, SAC_Unweighted_6_States_Dense,
     # SAC_Weighted_9_States_Sparse, SAC_Weighted_9_States_Dense,
     # SAC_Weighted_6_States_Sparse, SAC_Weighted_6_States_Dense
@@ -25,15 +26,38 @@ sac_models = [
 
 ppo_models = [
     # PPO_Unweighted_9_States_Sparse, PPO_Unweighted_9_States_Dense,
-    PPO_Unweighted_6_States_Sparse, PPO_Unweighted_6_States_Dense,
+    # PPO_Unweighted_6_States_Sparse, PPO_Unweighted_6_States_Dense,
     # PPO_Weighted_9_States_Sparse, PPO_Weighted_9_States_Dense,
     # PPO_Weighted_6_States_Sparse, PPO_Weighted_6_States_Dense
 ]
 
+def interpolate_states(states, episode_length, hz):
+    """
+    Interpolate target states so that we have one target per timestep.
+    states: array [N, state_dim]
+    """
+    num_waypoints = len(states)
+    state_dim = states.shape[1]
+
+    # Original timepoints (spread across episode)
+    t_waypoints = np.linspace(0, episode_length, num_waypoints)
+
+    # New dense timeline at desired resolution
+    t_dense = np.linspace(0, episode_length, int(episode_length * hz))
+
+    # Interpolate each dimension separately
+    states_interp = np.zeros((len(t_dense), state_dim))
+    for d in range(state_dim):
+        f = scipy.interpolate.interp1d(t_waypoints, states[:, d], kind="linear")
+        states_interp[:, d] = f(t_dense)
+
+    return states_interp
+
+
 # Combine for one loop
 all_models = sac_models + ppo_models
 
-# all_models = [Minimum_Distance_Shaped_Cost_SINDy]
+all_models = [OTR_Thresholded]
 
 # Evaluate each model in turn
 for model in all_models:
@@ -86,6 +110,7 @@ for model in all_models:
                 error, diff = calculate_error(target, obs_vec[[0, 1, 4]])
 
             if error < best_error:
+                print("error", error)
                 best_error = error
                 best_diff = diff
             if error < 0.1:
