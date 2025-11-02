@@ -19,7 +19,6 @@ def generate_state(user_command):
         Examples:
         - Command: "land at coordinates (3.5, -4.2)" should produce: [3.5, -4.2, 0, 0, 0, 0].
         - Command: "spin at 2 rad/s" should produce: [0, 0, 0, 0, 0, 2].
-        - Command: "fly with an angle of 0.1" should produce: [0, 0, 0, 0, 0.1, 0].
 
         Now, I want you convert the following human command:
         '{user_command}'

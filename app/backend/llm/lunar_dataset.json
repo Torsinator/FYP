@@ -1,0 +1,132 @@
+[
+  {
+    "instruction": "Land softly on the central pad.",
+    "context": {
+      "system": "You control a 2D lunar lander. The goal is to touch down gently near x=0 with upright orientation.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Descend vertically while keeping the lander upright and centered.",
+      "trajectory": [[0.3, 1.0, 0.1], [0.0, 0.0, 0.0]],
+      "weights": [[0.8, 1.0, 0.9], [1.0, 1.0, 1.0]]
+    }
+  },
+  {
+    "instruction": "Hover in place at height 1.2 meters.",
+    "context": {
+      "system": "Main thruster counters gravity to maintain steady hover.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Hold current x position, keep y=1.2, maintain level orientation.",
+      "trajectory": [[0.0, 1.2, 0.0]],
+      "weights": [[1.0, 1.0, 0.9]]
+    }
+  },
+  {
+    "instruction": "Move slightly to the right while maintaining altitude.",
+    "context": {
+      "system": "Side thrust allows small horizontal translations.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Shift x from 0.0 to 0.5 while keeping altitude and orientation stable.",
+      "trajectory": [[0.0, 1.0, 0.0], [0.5, 1.0, 0.0]],
+      "weights": [[1.0, 1.0, 0.8], [1.0, 1.0, 0.8]]
+    }
+  },
+  {
+    "instruction": "Perform a 45-degree clockwise rotation in place.",
+    "context": {
+      "system": "Rotation is achieved by differential side thrusts while holding position.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Keep x and y constant while smoothly rotating to -0.785 radians.",
+      "trajectory": [[0.0, 1.0, 0.0], [0.0, 1.0, -0.785]],
+      "weights": [[0.9, 0.8, 1.0], [0.9, 0.8, 1.0]]
+    }
+  },
+  {
+    "instruction": "Ascend vertically to a height of 1.5 meters.",
+    "context": {
+      "system": "Use main thruster to increase altitude while remaining upright.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Maintain vertical alignment, increase y from 0.5 to 1.5.",
+      "trajectory": [[0.0, 0.5, 0.0], [0.0, 1.5, 0.0]],
+      "weights": [[0.8, 1.0, 0.9], [0.8, 1.0, 0.9]]
+    }
+  },
+  {
+    "instruction": "Tilt slightly left and hold angle at 0.3 radians.",
+    "context": {
+      "system": "Adjust side thrusts to achieve desired tilt angle.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Keep position constant, adjust orientation to 0.3 radians.",
+      "trajectory": [[0.0, 1.0, 0.0], [0.0, 1.0, 0.3]],
+      "weights": [[0.7, 0.8, 1.0], [0.7, 0.8, 1.0]]
+    }
+  },
+  {
+    "instruction": "Translate left 0.5 meters while staying level.",
+    "context": {
+      "system": "Small side thrust adjustment to reposition horizontally.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Move x from 0.5 to 0.0 while maintaining height and level orientation.",
+      "trajectory": [[0.5, 1.0, 0.0], [0.0, 1.0, 0.0]],
+      "weights": [[1.0, 1.0, 0.9], [1.0, 1.0, 0.9]]
+    }
+  },
+  {
+    "instruction": "Lower altitude by 0.4 meters and stabilize.",
+    "context": {
+      "system": "Reduce thrust to descend smoothly.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Decrease y while holding x and angle constant to stabilize descent.",
+      "trajectory": [[0.0, 1.2, 0.0], [0.0, 0.8, 0.0]],
+      "weights": [[0.9, 1.0, 0.9], [0.9, 1.0, 0.9]]
+    }
+  },
+  {
+    "instruction": "Rotate 90 degrees counterclockwise while hovering at 1.0 meter.",
+    "context": {
+      "system": "Maintain altitude with main thrust while rotating counterclockwise.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Keep altitude steady and position fixed while rotating from 0.0 to 1.57 radians.",
+      "trajectory": [[0.0, 1.0, 0.0], [0.0, 1.0, 1.57]],
+      "weights": [[0.8, 0.9, 1.0], [0.8, 0.9, 1.0]]
+    }
+  },
+  {
+    "instruction": "Land precisely at x=-0.5 and y=0.0 while upright.",
+    "context": {
+      "system": "Final descent and controlled translation to target site.",
+      "states": ["x", "y", "theta"],
+      "bounds": { "min": [-1.0, 0.0, -1.57], "max": [1.0, 1.5, 1.57] }
+    },
+    "output": {
+      "reasoning": "Translate left to x=-0.5, reduce altitude to zero, and hold level orientation.",
+      "trajectory": [[0.0, 0.8, 0.0], [-0.5, 0.0, 0.0]],
+      "weights": [[0.9, 1.0, 0.9], [1.0, 1.0, 1.0]]
+    }
+  }
+]

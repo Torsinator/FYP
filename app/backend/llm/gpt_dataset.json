@@ -1,0 +1,1269 @@
+[
+  {
+    "instruction": "Ascend vertically to z = 2.0 and hover in place.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2, -2, 0, -3.14], "max": [2, 2, 3, 3.14]}
+    },
+    "output": {
+      "reasoning": "Increase collective thrust to gain altitude to 2 meters, then balance all motors equally to stabilize position and yaw at zero.",
+      "trajectory": [[0.0,0.0,0.5,0.0],[0.0,0.0,1.5,0.0],[0.0,0.0,2.0,0.0]],
+      "weights": [[0.6,0.6,1.0,0.3],[0.6,0.6,1.0,0.3],[0.6,0.6,1.0,0.3]]
+    }
+  },
+  {
+    "instruction": "Move forward to x = 1.5 while maintaining altitude z = 1.2.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2, -2, 0, -3.14], "max": [2, 2, 3, 3.14]}
+    },
+    "output": {
+      "reasoning": "Pitch slightly forward to generate forward thrust until reaching x = 1.5 m while maintaining altitude at 1.2 m.",
+      "trajectory": [[0.0,0.0,1.2,0.0],[0.8,0.0,1.2,0.0],[1.5,0.0,1.2,0.0]],
+      "weights": [[1.0,0.6,0.9,0.4],[1.0,0.6,0.9,0.4],[1.0,0.6,0.9,0.4]]
+    }
+  },
+  {
+    "instruction": "Slide right to y = 1.0 without changing altitude or heading.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Apply small roll to translate rightward until y = 1.0, while maintaining altitude and yaw fixed.",
+      "trajectory": [[0.0,0.0,1.0,0.0],[0.0,0.5,1.0,0.0],[0.0,1.0,1.0,0.0]],
+      "weights": [[0.6,1.0,0.8,0.4],[0.6,1.0,0.8,0.4],[0.6,1.0,0.8,0.4]]
+    }
+  },
+  {
+    "instruction": "Fly diagonally to x = 1.0, y = 1.0 while keeping altitude at z = 1.5.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Simultaneously apply forward pitch and rightward roll to move diagonally while maintaining level attitude and z = 1.5 m.",
+      "trajectory": [[0.0,0.0,1.5,0.0],[0.5,0.5,1.5,0.0],[1.0,1.0,1.5,0.0]],
+      "weights": [[0.9,0.9,1.0,0.4],[0.9,0.9,1.0,0.4],[0.9,0.9,1.0,0.4]]
+    }
+  },
+  {
+    "instruction": "Rotate 180 degrees in place while hovering at z = 1.0.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Apply counter-rotational torque while maintaining stable altitude and position. The final yaw should reach π radians.",
+      "trajectory": [[0.0,0.0,1.0,0.0],[0.0,0.0,1.0,1.57],[0.0,0.0,1.0,3.14]],
+      "weights": [[0.3,0.3,1.0,1.0],[0.3,0.3,1.0,1.0],[0.3,0.3,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Descend gently to z = 0.5 at the same x, y location.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Reduce collective thrust smoothly while maintaining attitude to lower the altitude to 0.5 m without drift.",
+      "trajectory": [[0.0,0.0,1.5,0.0],[0.0,0.0,1.0,0.0],[0.0,0.0,0.5,0.0]],
+      "weights": [[0.5,0.5,1.0,0.3],[0.5,0.5,1.0,0.3],[0.5,0.5,1.0,0.3]]
+    }
+  },
+  {
+    "instruction": "Circle around the origin at radius 1.0 while staying at altitude 1.5.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Fly a circular trajectory by adjusting yaw to face inward while maintaining altitude at 1.5 m.",
+      "trajectory": [[1.0,0.0,1.5,1.57],[0.0,1.0,1.5,3.14],[-1.0,0.0,1.5,-1.57]],
+      "weights": [[0.9,0.9,1.0,0.7],[0.9,0.9,1.0,0.7],[0.9,0.9,1.0,0.7]]
+    }
+  },
+  {
+    "instruction": "Strafe left by 0.5 m while yawing 90° to face north.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Apply lateral motion to y = -0.5 m while rotating yaw to 1.57 radians for reorientation.",
+      "trajectory": [[0.0,0.0,1.0,0.0],[0.0,-0.25,1.0,0.8],[0.0,-0.5,1.0,1.57]],
+      "weights": [[0.4,1.0,0.9,1.0],[0.4,1.0,0.9,1.0],[0.4,1.0,0.9,1.0]]
+    }
+  },
+  {
+    "instruction": "Climb to z = 2.5 and move backward to x = -1.0.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Combine backward pitch with increased thrust to reach altitude 2.5 and position x = -1.0.",
+      "trajectory": [[0.0,0.0,1.0,0.0],[-0.5,0.0,1.8,0.0],[-1.0,0.0,2.5,0.0]],
+      "weights": [[1.0,0.6,1.0,0.3],[1.0,0.6,1.0,0.3],[1.0,0.6,1.0,0.3]]
+    }
+  },
+  {
+    "instruction": "Rotate 45° clockwise while moving to x = 0.5 and y = 0.5.",
+    "context": {
+      "system": "you are a quadrotor drone",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "z (altitude, m)", "yaw (heading angle, rad)"],
+      "bounds": {"min": [-2,-2,0,-3.14],"max":[2,2,3,3.14]}
+    },
+    "output": {
+      "reasoning": "Fly diagonally upward to (0.5, 0.5) while yawing to -0.78 rad for a quarter rotation, keeping z fixed.",
+      "trajectory": [[0.0,0.0,1.0,0.0],[0.3,0.3,1.0,-0.4],[0.5,0.5,1.0,-0.78]],
+      "weights": [[0.9,0.9,0.8,1.0],[0.9,0.9,0.8,1.0],[0.9,0.9,0.8,1.0]]
+    }
+  },
+  {
+    "instruction": "Drive straight ahead to x = 5.0 while keeping steer = 0.0.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [0, -5, -3.14, -0.6], "max": [10, 5, 3.14, 0.6]}
+    },
+    "output": {
+      "reasoning": "The car accelerates straight ahead to 5 m while keeping yaw and steering near zero for a perfect lane-center trajectory.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[2.5,0.0,0.0,0.0],[5.0,0.0,0.0,0.0]],
+      "weights": [[1.0,0.6,0.8,0.7],[1.0,0.6,0.8,0.7],[1.0,0.6,0.8,0.7]]
+    }
+  },
+  {
+    "instruction": "Turn left to yaw = 1.57 while keeping x and y near zero.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [-5,-5,-3.14,-0.6],"max":[5,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "The car pivots in place by increasing steering leftward until yaw reaches π/2 radians, holding position steady.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,0.0,0.8,0.3],[0.0,0.0,1.57,0.0]],
+      "weights": [[0.3,0.3,1.0,1.0],[0.3,0.3,1.0,1.0],[0.3,0.3,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Execute a smooth right turn with radius 2.0 m.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [-5,-5,-3.14,-0.6],"max":[5,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "Increase steering angle gradually negative to curve right along a 2 m arc while yaw decreases smoothly to -1.57 rad.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[1.5,-1.0,-0.8,-0.3],[3.0,-2.0,-1.57,0.0]],
+      "weights": [[1.0,1.0,1.0,0.9],[1.0,1.0,1.0,0.9],[1.0,1.0,1.0,0.9]]
+    }
+  },
+  {
+    "instruction": "Parallel park by moving to x = 2.0, y = -0.5 and yaw = 0.0.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [-5,-5,-3.14,-0.6],"max":[5,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "Perform a small backward-forward maneuver adjusting steering to align with the curb, ending at (2.0,-0.5) with yaw≈0.",
+      "trajectory": [[2.5,0.0,0.1,0.2],[2.2,-0.3,0.05,-0.2],[2.0,-0.5,0.0,0.0]],
+      "weights": [[1.0,1.0,0.8,0.8],[1.0,1.0,0.8,0.8],[1.0,1.0,0.8,0.8]]
+    }
+  },
+  {
+    "instruction": "Perform a U-turn returning to yaw = 3.14.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [-5,-5,-3.14,-0.6],"max":[5,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "The car steers left sharply, looping around until yaw ≈ π and facing the opposite direction.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[1.0,1.0,1.57,0.4],[2.0,0.0,3.14,0.0]],
+      "weights": [[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Reverse backward two meters while keeping yaw fixed.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [-5,-5,-3.14,-0.6],"max":[5,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "Engage reverse motion, maintain steering and yaw≈0 while moving backward along x-axis.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[-1.0,0.0,0.0,0.0],[-2.0,0.0,0.0,0.0]],
+      "weights": [[1.0,0.6,0.8,0.6],[1.0,0.6,0.8,0.6],[1.0,0.6,0.8,0.6]]
+    }
+  },
+  {
+    "instruction": "Perform a lane change to y = 1.5 while continuing forward.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [0,-5,-3.14,-0.6],"max":[10,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "Adjust steering slightly right to shift laterally to y = 1.5 over several meters, keeping yaw ≈ 0.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[3.0,0.8,0.1,0.2],[5.0,1.5,0.0,0.0]],
+      "weights": [[1.0,1.0,0.9,0.7],[1.0,1.0,0.9,0.7],[1.0,1.0,0.9,0.7]]
+    }
+  },
+  {
+    "instruction": "Drive in a small left arc to yaw = 0.78 radians.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [-5,-5,-3.14,-0.6],"max":[5,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "Apply moderate left steering, producing a gentle arc until yaw reaches 45°, then straighten the wheels.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[1.5,0.8,0.4,0.3],[3.0,1.5,0.78,0.0]],
+      "weights": [[1.0,1.0,1.0,0.9],[1.0,1.0,1.0,0.9],[1.0,1.0,1.0,0.9]]
+    }
+  },
+  {
+    "instruction": "Align with the curb by shifting to y = -1.0 and yaw = 0.0.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [0,-5,-3.14,-0.6],"max":[10,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "Move slowly sideways left with minor steering corrections to park 1.0 m left of the current lane.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.5,-0.5,0.0,-0.1],[1.0,-1.0,0.0,0.0]],
+      "weights": [[1.0,1.0,0.8,0.6],[1.0,1.0,0.8,0.6],[1.0,1.0,0.8,0.6]]
+    }
+  },
+  {
+    "instruction": "Drive forward to a parking spot at x = 4.0, y = 2.0.",
+    "context": {
+      "system": "you are an autonomous ground car",
+      "states": ["x (forward position, m)", "y (lateral position, m)", "yaw (heading angle, rad)", "steer (steering angle, rad)"],
+      "bounds": {"min": [0,-5,-3.14,-0.6],"max":[10,5,3.14,0.6]}
+    },
+    "output": {
+      "reasoning": "Combine gentle steering and forward motion to approach the spot diagonally, stopping at (4,2).",
+      "trajectory": [[0.0,0.0,0.0,0.0],[2.0,1.0,0.4,0.2],[4.0,2.0,0.0,0.0]],
+      "weights": [[1.0,1.0,1.0,0.7],[1.0,1.0,1.0,0.7],[1.0,1.0,1.0,0.7]]
+    }
+  },
+  {
+    "instruction": "Move the first joint to 45° while keeping the second joint fixed.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14, -3.14], "max": [3.14, 3.14]}
+    },
+    "output": {
+      "reasoning": "The base joint rotates to π/4 radians while the elbow remains stationary, positioning the arm outward at mid-reach.",
+      "trajectory": [[0.0,0.0],[0.39,0.0],[0.79,0.0]],
+      "weights": [[1.0,0.4],[1.0,0.4],[1.0,0.4]]
+    }
+  },
+  {
+    "instruction": "Bend both joints equally to reach forward with a symmetric pose.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Each joint bends to about 0.7 rad, forming a gentle arc that points the hand directly forward from the shoulder.",
+      "trajectory": [[0.0,0.0],[0.35,0.35],[0.7,0.7]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Extend the second joint fully while holding the first at 0.5 rad.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Keep the shoulder partially lifted at 0.5 rad and straighten the elbow to align the links in a straight line.",
+      "trajectory": [[0.5,0.0],[0.5,1.0],[0.5,1.57]],
+      "weights": [[0.6,1.0],[0.6,1.0],[0.6,1.0]]
+    }
+  },
+  {
+    "instruction": "Fold the arm so the hand moves closer to the base.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Rotate the shoulder slightly upward and bend the elbow to negative angle, bringing the end-effector inward.",
+      "trajectory": [[0.2,0.0],[0.4,-0.5],[0.5,-1.0]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Lift both joints upward to form an L-shape with the arm.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Raise the shoulder by 90 degrees and bend the elbow so the forearm points vertically, forming a clear right angle.",
+      "trajectory": [[0.0,0.0],[1.0,0.5],[1.57,1.57]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Rotate the elbow outward to -0.8 rad keeping shoulder still.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Fix the shoulder angle and rotate the elbow backward to open the arm behind the base frame.",
+      "trajectory": [[0.6,0.0],[0.6,-0.4],[0.6,-0.8]],
+      "weights": [[0.5,1.0],[0.5,1.0],[0.5,1.0]]
+    }
+  },
+  {
+    "instruction": "Sweep the arm in a horizontal arc from left to right.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Move the base joint from -0.8 rad to 0.8 rad while the elbow mirrors it to keep the end-effector roughly constant in radius.",
+      "trajectory": [[-0.8,0.8],[0.0,0.0],[0.8,-0.8]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Point straight upward by aligning both joints vertically.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Rotate shoulder and elbow both to π/2 radians so the two links form a single vertical line.",
+      "trajectory": [[0.0,0.0],[0.79,0.39],[1.57,1.57]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Curl the elbow while holding shoulder at 1.2 rad.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Fix the shoulder at 1.2 rad and flex the elbow to bring the end-effector closer to the upper arm.",
+      "trajectory": [[1.2,0.0],[1.2,0.7],[1.2,1.2]],
+      "weights": [[0.5,1.0],[0.5,1.0],[0.5,1.0]]
+    }
+  },
+  {
+    "instruction": "Reach diagonally downward with both joints decreasing equally.",
+    "context": {
+      "system": "you are a two-link robotic arm",
+      "states": ["q1 (joint 1 angle, rad)", "q2 (joint 2 angle, rad)"],
+      "bounds": {"min": [-3.14,-3.14], "max": [3.14,3.14]}
+    },
+    "output": {
+      "reasoning": "Lower both shoulder and elbow angles simultaneously so the hand follows a diagonal path toward the lower workspace.",
+      "trajectory": [[1.0,1.0],[0.5,0.5],[0.0,0.0]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Hop vertically to reach z = 1.5 while keeping the torso upright.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0, 0, -1], "max": [3, 2, 1]}
+    },
+    "output": {
+      "reasoning": "Compress the leg slightly, push off to reach 1.5 m height, then stabilize with torso pitch near zero.",
+      "trajectory": [[0.0,1.0,0.0],[0.0,1.5,0.0],[0.0,1.0,0.0]],
+      "weights": [[0.8,1.0,0.6],[0.8,1.0,0.6],[0.8,1.0,0.6]]
+    }
+  },
+  {
+    "instruction": "Leap forward to x = 1.0 while keeping z around 1.2.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Generate thrust at an angle to travel one meter forward while maintaining height and upright posture.",
+      "trajectory": [[0.0,1.0,0.0],[0.5,1.2,0.0],[1.0,1.2,0.0]],
+      "weights": [[1.0,0.8,0.5],[1.0,0.8,0.5],[1.0,0.8,0.5]]
+    }
+  },
+  {
+    "instruction": "Jump onto a low platform at x = 0.5, z = 1.5.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Push off diagonally to reach forward half a meter and upward to 1.5 m, landing upright with small pitch.",
+      "trajectory": [[0.0,1.0,0.0],[0.3,1.4,0.1],[0.5,1.5,0.0]],
+      "weights": [[1.0,1.0,0.6],[1.0,1.0,0.6],[1.0,1.0,0.6]]
+    }
+  },
+  {
+    "instruction": "Duck down to z = 0.6 to avoid an overhead bar.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Bend knees to lower body height while keeping torso vertical and position fixed.",
+      "trajectory": [[0.0,1.0,0.0],[0.0,0.8,0.0],[0.0,0.6,0.0]],
+      "weights": [[0.5,1.0,0.4],[0.5,1.0,0.4],[0.5,1.0,0.4]]
+    }
+  },
+  {
+    "instruction": "Perform a small forward hop and land upright at x = 0.8.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Apply thrust at a shallow angle to move forward less than one meter and maintain posture stability.",
+      "trajectory": [[0.0,1.0,0.0],[0.4,1.3,0.1],[0.8,1.0,0.0]],
+      "weights": [[1.0,0.9,0.6],[1.0,0.9,0.6],[1.0,0.9,0.6]]
+    }
+  },
+  {
+    "instruction": "Tilt body backward slightly while staying at x = 1.0.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Keep position and height constant, rotate torso backward to -0.3 rad for a cautious landing attitude.",
+      "trajectory": [[1.0,1.0,0.0],[1.0,1.0,-0.15],[1.0,1.0,-0.3]],
+      "weights": [[1.0,0.8,1.0],[1.0,0.8,1.0],[1.0,0.8,1.0]]
+    }
+  },
+  {
+    "instruction": "Jump left to x = -0.5 while maintaining z = 1.0.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [-3,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Push sideways to shift half a meter left, maintaining altitude and minimal torso tilt.",
+      "trajectory": [[0.0,1.0,0.0],[-0.25,1.0,0.0],[-0.5,1.0,0.0]],
+      "weights": [[1.0,0.7,0.5],[1.0,0.7,0.5],[1.0,0.7,0.5]]
+    }
+  },
+  {
+    "instruction": "Crouch then jump to reach maximum height 1.8 m.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Lower center of mass before an explosive push upward to reach 1.8 m height, landing softly upright.",
+      "trajectory": [[0.0,0.8,0.0],[0.0,1.8,0.0],[0.0,1.0,0.0]],
+      "weights": [[0.8,1.0,0.6],[0.8,1.0,0.6],[0.8,1.0,0.6]]
+    }
+  },
+  {
+    "instruction": "Balance at the top of a small step at z = 1.2 with theta = 0.0.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Ascend onto a step by small vertical hop, then remain balanced with body upright.",
+      "trajectory": [[0.0,1.0,0.0],[0.0,1.2,0.0],[0.0,1.2,0.0]],
+      "weights": [[0.8,1.0,0.7],[0.8,1.0,0.7],[0.8,1.0,0.7]]
+    }
+  },
+  {
+    "instruction": "Leap forward and tilt torso 0.2 rad for aerodynamic posture.",
+    "context": {
+      "system": "you are a planar hopper",
+      "states": ["x (horizontal position, m)", "z (height, m)", "theta (body pitch, rad)"],
+      "bounds": {"min": [0,0,-1],"max":[3,2,1]}
+    },
+    "output": {
+      "reasoning": "Apply thrust forward and incline torso slightly positive to reduce drag while covering 1 m distance.",
+      "trajectory": [[0.0,1.0,0.0],[0.5,1.3,0.1],[1.0,1.0,0.2]],
+      "weights": [[1.0,0.9,0.8],[1.0,0.9,0.8],[1.0,0.9,0.8]]
+    }
+  },
+  {
+    "instruction": "Stretch forward with torso leaning slightly ahead at 0.3 rad.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0, -1.0, -1.5, -1.5], "max": [5, 1.0, 1.5, 1.5]}
+    },
+    "output": {
+      "reasoning": "Shift center of mass slightly forward by pitching torso 0.3 rad, extending the front leg and retracting the back leg for balance.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.5,0.15,0.3,-0.3],[1.0,0.3,0.6,-0.6]],
+      "weights": [[1.0,0.8,0.9,0.9],[1.0,0.8,0.9,0.9],[1.0,0.8,0.9,0.9]]
+    }
+  },
+  {
+    "instruction": "Crouch with torso level and both legs folded under the body.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Reduce body height by bringing both legs inward symmetrically while keeping torso near 0 rad.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,0.0,-0.6,-0.6],[0.0,0.0,-1.0,-1.0]],
+      "weights": [[0.6,1.0,1.0,1.0],[0.6,1.0,1.0,1.0],[0.6,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Arch upward by pitching torso to -0.4 rad while extending both legs.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Push legs outward evenly and tilt torso slightly back to form an arched stance.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,-0.2,0.8,0.8],[0.0,-0.4,1.2,1.2]],
+      "weights": [[0.8,1.0,1.0,1.0],[0.8,1.0,1.0,1.0],[0.8,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Extend the back leg fully while keeping the front leg straight.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Hold front leg neutral and push the back leg backward to -1.0 rad to simulate propulsion stance.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.5,0.0,0.0,-0.5],[1.0,0.0,0.0,-1.0]],
+      "weights": [[1.0,0.7,0.5,1.0],[1.0,0.7,0.5,1.0],[1.0,0.7,0.5,1.0]]
+    }
+  },
+  {
+    "instruction": "Lean forward aggressively at 0.6 rad with staggered leg placement.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Tilt torso 0.6 rad forward, extend front leg and retract back leg to create a stretched sprinting posture.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.5,0.3,0.5,-0.5],[1.0,0.6,1.0,-1.0]],
+      "weights": [[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Rise to a neutral pose with both legs vertical and torso upright.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Straighten both legs to 0 rad and level the torso at zero pitch, maintaining balance at initial x.",
+      "trajectory": [[0.0,-0.2,-0.5,-0.5],[0.0,-0.1,-0.2,-0.2],[0.0,0.0,0.0,0.0]],
+      "weights": [[0.5,1.0,1.0,1.0],[0.5,1.0,1.0,1.0],[0.5,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Arch downward with torso at -0.5 rad and legs spread.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Bend torso downward to -0.5 rad while moving legs outward for a balanced crouch stance.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,-0.25,0.8,0.8],[0.0,-0.5,1.2,1.2]],
+      "weights": [[0.8,1.0,1.0,1.0],[0.8,1.0,1.0,1.0],[0.8,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Shift center of mass backward while pitching torso -0.3 rad.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Pull torso slightly backward and extend front leg while tucking the rear for stability.",
+      "trajectory": [[1.0,0.0,0.0,0.0],[0.9,-0.15,0.5,-0.2],[0.8,-0.3,0.8,-0.5]],
+      "weights": [[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Raise front leg 1.0 rad while keeping torso steady.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Lift front leg upward to 1.0 rad while maintaining torso angle near zero and back leg neutral.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,0.0,0.5,0.0],[0.0,0.0,1.0,0.0]],
+      "weights": [[0.7,0.7,1.0,0.5],[0.7,0.7,1.0,0.5],[0.7,0.7,1.0,0.5]]
+    }
+  },
+  {
+    "instruction": "Step forward with back leg while keeping front leg anchored.",
+    "context": {
+      "system": "you are a half-cheetah robot",
+      "states": ["x (horizontal position, m)", "torso_pitch (body angle, rad)", "front_leg (joint angle, rad)", "back_leg (joint angle, rad)"],
+      "bounds": {"min": [0,-1.0,-1.5,-1.5],"max":[5,1.0,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Advance x position by extending rear leg forward while front leg stays fixed, producing a stride.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.5,0.0,0.0,0.6],[1.0,0.0,0.0,1.2]],
+      "weights": [[1.0,0.8,0.6,1.0],[1.0,0.8,0.6,1.0],[1.0,0.8,0.6,1.0]]
+    }
+  },
+  {
+    "instruction": "Swing up and balance upright at theta = 0 rad.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14], "max": [3.14]}
+    },
+    "output": {
+      "reasoning": "The pendulum must swing through its lower arc and stabilize at the upright position. Weight on theta = 1.0 since orientation accuracy determines success.",
+      "trajectory": [[-2.5],[0.0],[0.0]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Hold at 45° angle from vertical.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14],"max":[3.14]}
+    },
+    "output": {
+      "reasoning": "Maintain constant torque to balance at π/4 radians. Weight high (1.0) on theta because any drift changes potential energy significantly.",
+      "trajectory": [[0.0],[0.39],[0.79]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Let the pendulum hang downward at θ = π rad.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14],"max":[3.14]}
+    },
+    "output": {
+      "reasoning": "This stable equilibrium requires no torque. Weight is 1.0 since only the final orientation matters.",
+      "trajectory": [[0.0],[2.0],[3.14]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Stabilize near θ = 0.5 rad after a small push.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14],"max":[3.14]}
+    },
+    "output": {
+      "reasoning": "Apply damping torque to counter oscillations. Weight = 1.0 since angular error defines control cost.",
+      "trajectory": [[0.8],[0.6],[0.5]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Perform one full rotation clockwise then stop upright.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-6.28],"max":[6.28]}
+    },
+    "output": {
+      "reasoning": "Continuous torque must overcome gravity once then halt at θ=0. Weight 1.0 because path shape is secondary — upright completion dominates.",
+      "trajectory": [[0.0],[-3.14],[0.0]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Reach target at (x=0.5, y=0.3).",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "Both x and y determine final reach accuracy, but y has slightly higher sensitivity due to arm geometry near singularities.",
+      "trajectory": [[0.0,0.0],[0.3,0.2],[0.5,0.3]],
+      "weights": [[0.9,1.0],[0.9,1.0],[0.9,1.0]]
+    }
+  },
+  {
+    "instruction": "Touch target at (-0.4, 0.5).",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "Reaching left requires shoulder counter-rotation. Equal weights for x and y since planar symmetry applies.",
+      "trajectory": [[0.0,0.0],[-0.2,0.3],[-0.4,0.5]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Trace a straight diagonal path toward (0.6, 0.6).",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "Both axes contribute equally to motion error; equal weighting promotes balanced Cartesian tracking.",
+      "trajectory": [[0.0,0.0],[0.3,0.3],[0.6,0.6]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Move upward while staying near x = 0.2.",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "High weight on y since vertical motion dominates. Low on x since lateral drift is tolerated.",
+      "trajectory": [[0.2,0.0],[0.2,0.3],[0.2,0.6]],
+      "weights": [[0.4,1.0],[0.4,1.0],[0.4,1.0]]
+    }
+  },
+  {
+    "instruction": "Draw a small circular motion around (0.3, 0.3).",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "Smooth coordination of x and y is required. Equal high weights for both since circularity depends on both axes.",
+      "trajectory": [[0.4,0.3],[0.3,0.4],[0.2,0.3]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Lean forward and step to x = 1.0.",
+    "context": {
+      "system": "you are a bipedal walker with planar joints",
+      "states": ["x (horizontal position, m)", "theta (torso pitch, rad)", "hip (joint angle, rad)", "knee (joint angle, rad)"],
+      "bounds": {"min": [0,-1,-1,-1.5],"max":[2,1,1,1.5]}
+    },
+    "output": {
+      "reasoning": "High weight on x for progress, moderate on torso pitch for balance. Hip/knee moderate as they coordinate stride.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.5,0.2,0.3,-0.4],[1.0,0.1,0.6,-0.8]],
+      "weights": [[1.0,0.8,0.6,0.6],[1.0,0.8,0.6,0.6],[1.0,0.8,0.6,0.6]]
+    }
+  },
+  {
+    "instruction": "Crouch slightly to lower center of mass.",
+    "context": {
+      "system": "you are a bipedal walker with planar joints",
+      "states": ["x (horizontal position, m)", "theta (torso pitch, rad)", "hip (joint angle, rad)", "knee (joint angle, rad)"],
+      "bounds": {"min": [0,-1,-1,-1.5],"max":[2,1,1,1.5]}
+    },
+    "output": {
+      "reasoning": "Position x irrelevant; focus on knee/hip bending, so those weights dominate.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,0.0,0.4,0.8],[0.0,0.0,0.6,1.0]],
+      "weights": [[0.1,0.3,1.0,1.0],[0.1,0.3,1.0,1.0],[0.1,0.3,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Swing to 180° and hold inverted for two seconds.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14], "max": [3.14]}
+    },
+    "output": {
+      "reasoning": "Maintaining θ = 0 (upright) is unstable — any small drift amplifies. Weight=1.0 to emphasize precise angle stabilization.",
+      "trajectory": [[-1.5],[0.0],[0.0]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Allow pendulum to swing naturally and dampen at bottom.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14], "max": [3.14]}
+    },
+    "output": {
+      "reasoning": "Final rest is θ = ±π. Path shape irrelevant — damping goal means angle final value dominates. Weight=1.0.",
+      "trajectory": [[1.5],[2.5],[3.14]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Overshoot slightly then settle to 0 rad.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14],"max":[3.14]}
+    },
+    "output": {
+      "reasoning": "Small overshoot (negative θ) acceptable, but upright stability at end is critical → weight=1.0.",
+      "trajectory": [[1.0],[0.0],[-0.2]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Oscillate symmetrically ±1.0 rad around upright.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-3.14],"max":[3.14]}
+    },
+    "output": {
+      "reasoning": "Here accuracy is less critical than symmetry, so weights still 1.0 (only one variable).",
+      "trajectory": [[1.0],[0.0],[-1.0]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Spin continuously twice then return to rest.",
+    "context": {
+      "system": "you are a simple pendulum controlled by continuous torque",
+      "states": ["theta (angle from upright, rad)"],
+      "bounds": {"min": [-12.56],"max":[12.56]}
+    },
+    "output": {
+      "reasoning": "Final orientation defines task success. Intermediate rotations carry low penalty; θ weighting = 1.0 uniform.",
+      "trajectory": [[0.0],[6.28],[12.56]],
+      "weights": [[1.0],[1.0],[1.0]]
+    }
+  },
+  {
+    "instruction": "Move to target (0.8, -0.3) and stay steady.",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "Since the end-effector must hit a specific point, equal high weights on x and y ensure balanced control cost.",
+      "trajectory": [[0.0,0.0],[0.4,-0.2],[0.8,-0.3]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Follow a vertical arc passing through (0.4,0.2) → (0.4,0.6).",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "x is constrained (0.4 constant), so high weight on y. Weight on x smaller since deviation less critical.",
+      "trajectory": [[0.4,0.2],[0.4,0.4],[0.4,0.6]],
+      "weights": [[0.3,1.0],[0.3,1.0],[0.3,1.0]]
+    }
+  },
+  {
+    "instruction": "Move diagonally back toward the origin.",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "Error grows equally in both axes, equal weighting maintains straight-line motion.",
+      "trajectory": [[0.6,0.6],[0.3,0.3],[0.0,0.0]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Trace a horizontal line at y = 0.4 for x from 0.2→0.8.",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "The horizontal trajectory means small y-error heavily penalized; hence y weight > x.",
+      "trajectory": [[0.2,0.4],[0.5,0.4],[0.8,0.4]],
+      "weights": [[0.7,1.0],[0.7,1.0],[0.7,1.0]]
+    }
+  },
+  {
+    "instruction": "Reach behind to (-0.5, -0.5) then return to neutral.",
+    "context": {
+      "system": "you are a planar two-link reacher robot",
+      "states": ["x (end-effector x-position, m)", "y (end-effector y-position, m)"],
+      "bounds": {"min": [-1,-1],"max":[1,1]}
+    },
+    "output": {
+      "reasoning": "Equal x/y relevance again; path symmetry matters more than absolute direction.",
+      "trajectory": [[0.0,0.0],[-0.5,-0.5],[0.0,0.0]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Take a large step forward to x = 1.5 keeping torso upright.",
+    "context": {
+      "system": "you are a bipedal walker with planar joints",
+      "states": ["x (horizontal position, m)", "theta (torso pitch, rad)", "hip (joint angle, rad)", "knee (joint angle, rad)"],
+      "bounds": {"min": [0,-1,-1.5,-1.5],"max":[3,1,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Progress (x) is the goal, but balance (theta) prevents falling. Thus x=1.0, theta=0.8, hip/knee moderate.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.8,0.2,0.5,-0.4],[1.5,0.0,0.6,-0.6]],
+      "weights": [[1.0,0.8,0.6,0.6],[1.0,0.8,0.6,0.6],[1.0,0.8,0.6,0.6]]
+    }
+  },
+  {
+    "instruction": "Lean backward slightly for braking posture.",
+    "context": {
+      "system": "you are a bipedal walker with planar joints",
+      "states": ["x (horizontal position, m)", "theta (torso pitch, rad)", "hip (joint angle, rad)", "knee (joint angle, rad)"],
+      "bounds": {"min": [0,-1,-1.5,-1.5],"max":[3,1,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Pitch (theta) dominates the braking stability — weight=1.0 there. Legs secondary.",
+      "trajectory": [[1.0,0.0,0.0,0.0],[1.0,-0.2,0.2,0.2],[1.0,-0.3,0.4,0.4]],
+      "weights": [[0.3,1.0,0.6,0.6],[0.3,1.0,0.6,0.6],[0.3,1.0,0.6,0.6]]
+    }
+  },
+  {
+    "instruction": "Perform a mini squat for energy absorption.",
+    "context": {
+      "system": "you are a bipedal walker with planar joints",
+      "states": ["x (horizontal position, m)", "theta (torso pitch, rad)", "hip (joint angle, rad)", "knee (joint angle, rad)"],
+      "bounds": {"min": [0,-1,-1.5,-1.5],"max":[3,1,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Hip/knee dominate; torso secondary; x irrelevant.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,0.0,0.6,0.8],[0.0,0.0,0.8,1.0]],
+      "weights": [[0.1,0.3,1.0,1.0],[0.1,0.3,1.0,1.0],[0.1,0.3,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Shift weight onto left leg (hip rotation -0.3 rad).",
+    "context": {
+      "system": "you are a bipedal walker with planar joints",
+      "states": ["x (horizontal position, m)", "theta (torso pitch, rad)", "hip (joint angle, rad)", "knee (joint angle, rad)"],
+      "bounds": {"min": [0,-1,-1.5,-1.5],"max":[3,1,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "Hip angle change drives weight shift; hip weight=1.0, theta moderate.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,0.1,-0.2,0.1],[0.0,0.1,-0.3,0.1]],
+      "weights": [[0.3,0.6,1.0,0.5],[0.3,0.6,1.0,0.5],[0.3,0.6,1.0,0.5]]
+    }
+  },
+  {
+    "instruction": "Balance upright with minimal motion for 1 second.",
+    "context": {
+      "system": "you are a bipedal walker with planar joints",
+      "states": ["x (horizontal position, m)", "theta (torso pitch, rad)", "hip (joint angle, rad)", "knee (joint angle, rad)"],
+      "bounds": {"min": [0,-1,-1.5,-1.5],"max":[3,1,1.5,1.5]}
+    },
+    "output": {
+      "reasoning": "The goal is static balance, so theta gets highest weight (1.0), x irrelevant.",
+      "trajectory": [[1.0,0.0,0.0,0.0],[1.0,0.0,0.0,0.0],[1.0,0.0,0.0,0.0]],
+      "weights": [[0.0,1.0,0.6,0.6],[0.0,1.0,0.6,0.6],[0.0,1.0,0.6,0.6]]
+    }
+  },
+  {
+    "instruction": "Balance the pole upright at x = 0, angle = 0 rad.",
+    "context": {
+      "system": "you are a cart balancing a pole with continuous horizontal force",
+      "states": ["x (cart position, m)", "theta (pole angle from vertical, rad)"],
+      "bounds": {"min": [-2.4, -0.5], "max": [2.4, 0.5]}
+    },
+    "output": {
+      "reasoning": "The pole angle dominates stability, so weight on theta = 1.0, while x is moderate to keep cart centered.",
+      "trajectory": [[0.0,0.2],[0.0,0.1],[0.0,0.0]],
+      "weights": [[0.6,1.0],[0.6,1.0],[0.6,1.0]]
+    }
+  },
+  {
+    "instruction": "Recover from a left tilt of -0.3 rad to upright.",
+    "context": {
+      "system": "you are a cart balancing a pole with continuous horizontal force",
+      "states": ["x (cart position, m)", "theta (pole angle from vertical, rad)"],
+      "bounds": {"min": [-2.4,-1.0],"max":[2.4,1.0]}
+    },
+    "output": {
+      "reasoning": "Angle correction is crucial; position can vary freely. Weight heavily on theta.",
+      "trajectory": [[0.0,-0.3],[0.2,-0.1],[0.4,0.0]],
+      "weights": [[0.4,1.0],[0.4,1.0],[0.4,1.0]]
+    }
+  },
+  {
+    "instruction": "Shift the cart to x = 1.0 while keeping the pole vertical.",
+    "context": {
+      "system": "you are a cart balancing a pole with continuous horizontal force",
+      "states": ["x (cart position, m)", "theta (pole angle, rad)"],
+      "bounds": {"min": [-2.4,-0.5],"max":[2.4,0.5]}
+    },
+    "output": {
+      "reasoning": "x is the target variable (1.0 weight), but small theta drift breaks balance so still high weight on angle.",
+      "trajectory": [[0.0,0.0],[0.5,0.1],[1.0,0.0]],
+      "weights": [[1.0,0.9],[1.0,0.9],[1.0,0.9]]
+    }
+  },
+  {
+    "instruction": "Swing pole downward to rest flat at θ = 0.5 rad.",
+    "context": {
+      "system": "you are a cart balancing a pole with continuous horizontal force",
+      "states": ["x (cart position, m)", "theta (pole angle, rad)"],
+      "bounds": {"min": [-2.4,-1.0],"max":[2.4,1.0]}
+    },
+    "output": {
+      "reasoning": "Goal is controlled descent; moderate x weight, main precision on θ since energy dissipation depends on angle.",
+      "trajectory": [[0.0,0.0],[0.2,0.3],[0.4,0.5]],
+      "weights": [[0.5,1.0],[0.5,1.0],[0.5,1.0]]
+    }
+  },
+  {
+    "instruction": "Move left to x = -1.5 while keeping pole balanced.",
+    "context": {
+      "system": "you are a cart balancing a pole with continuous horizontal force",
+      "states": ["x (cart position, m)", "theta (pole angle, rad)"],
+      "bounds": {"min": [-2.4,-0.5],"max":[2.4,0.5]}
+    },
+    "output": {
+      "reasoning": "x is priority but must not exceed tilt tolerance — θ error crucial. Balanced weights.",
+      "trajectory": [[0.0,0.0],[-0.75,0.05],[-1.5,0.0]],
+      "weights": [[1.0,1.0],[1.0,1.0],[1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Move end-effector to (x=0.5, y=0.3, z=0.4) while keeping wrist level.",
+    "context": {
+      "system": "you are a 6-DOF robotic manipulator",
+      "states": ["x (end-effector x-position, m)", "y (y-position, m)", "z (height, m)", "roll (rad)", "pitch (rad)", "yaw (rad)"],
+      "bounds": {"min": [-1,-1,0,-3.14,-1.57,-3.14],"max":[1,1,1,3.14,1.57,3.14]}
+    },
+    "output": {
+      "reasoning": "Cartesian coordinates dominate for reaching — weights (x,y,z) high. Orientation less critical but maintained (0.5 weight).",
+      "trajectory": [[0.0,0.0,0.2,0.0,0.0,0.0],[0.3,0.2,0.3,0.1,0.0,0.0],[0.5,0.3,0.4,0.0,0.0,0.0]],
+      "weights": [[1.0,1.0,1.0,0.5,0.5,0.5],[1.0,1.0,1.0,0.5,0.5,0.5],[1.0,1.0,1.0,0.5,0.5,0.5]]
+    }
+  },
+  {
+    "instruction": "Rotate wrist 90° clockwise about yaw axis at fixed position.",
+    "context": {
+      "system": "you are a 6-DOF robotic manipulator",
+      "states": ["x (m)","y (m)","z (m)","roll (rad)","pitch (rad)","yaw (rad)"],
+      "bounds": {"min": [-1,-1,0,-3.14,-1.57,-3.14],"max":[1,1,1,3.14,1.57,3.14]}
+    },
+    "output": {
+      "reasoning": "Position fixed → (x,y,z) low weights. Yaw dominates → weight=1.0 there.",
+      "trajectory": [[0.4,0.3,0.3,0.0,0.0,0.0],[0.4,0.3,0.3,0.0,0.0,1.57],[0.4,0.3,0.3,0.0,0.0,3.14]],
+      "weights": [[0.2,0.2,0.2,0.4,0.4,1.0],[0.2,0.2,0.2,0.4,0.4,1.0],[0.2,0.2,0.2,0.4,0.4,1.0]]
+    }
+  },
+  {
+    "instruction": "Pick object from table at z = 0.1 with roll = 0.",
+    "context": {
+      "system": "you are a 6-DOF robotic manipulator",
+      "states": ["x (m)","y (m)","z (m)","roll (rad)","pitch (rad)","yaw (rad)"],
+      "bounds": {"min": [-1,-1,0,-3.14,-1.57,-3.14],"max":[1,1,1,3.14,1.57,3.14]}
+    },
+    "output": {
+      "reasoning": "Vertical accuracy crucial for grasp (z=1.0). Orientation and position secondary for safe contact.",
+      "trajectory": [[0.5,0.0,0.4,0.0,0.0,0.0],[0.5,0.0,0.2,0.0,0.0,0.0],[0.5,0.0,0.1,0.0,0.0,0.0]],
+      "weights": [[0.6,0.6,1.0,0.5,0.5,0.5],[0.6,0.6,1.0,0.5,0.5,0.5],[0.6,0.6,1.0,0.5,0.5,0.5]]
+    }
+  },
+  {
+    "instruction": "Align end-effector vertically with roll = 0, pitch = -1.57, yaw = 0.",
+    "context": {
+      "system": "you are a 6-DOF robotic manipulator",
+      "states": ["x (m)","y (m)","z (m)","roll (rad)","pitch (rad)","yaw (rad)"],
+      "bounds": {"min": [-1,-1,0,-3.14,-1.57,-3.14],"max":[1,1,1,3.14,1.57,3.14]}
+    },
+    "output": {
+      "reasoning": "Orientation dominates (roll/pitch/yaw high weight). Cartesian small changes acceptable.",
+      "trajectory": [[0.0,0.0,0.5,0.0,0.0,0.0],[0.0,0.0,0.5,0.0,-0.8,0.0],[0.0,0.0,0.5,0.0,-1.57,0.0]],
+      "weights": [[0.3,0.3,0.3,1.0,1.0,1.0],[0.3,0.3,0.3,1.0,1.0,1.0],[0.3,0.3,0.3,1.0,1.0,1.0]]
+    }
+  },
+  {
+    "instruction": "Translate left by 0.3 m maintaining all joint orientations.",
+    "context": {
+      "system": "you are a 6-DOF robotic manipulator",
+      "states": ["x (m)","y (m)","z (m)","roll (rad)","pitch (rad)","yaw (rad)"],
+      "bounds": {"min": [-1,-1,0,-3.14,-1.57,-3.14],"max":[1,1,1,3.14,1.57,3.14]}
+    },
+    "output": {
+      "reasoning": "Translation (x,y,z) dominate; orientation secondary. Equal high weights on spatial variables.",
+      "trajectory": [[0.5,0.0,0.3,0.0,0.0,0.0],[0.2,0.0,0.3,0.0,0.0,0.0],[0.0,0.0,0.3,0.0,0.0,0.0]],
+      "weights": [[1.0,1.0,1.0,0.4,0.4,0.4],[1.0,1.0,1.0,0.4,0.4,0.4],[1.0,1.0,1.0,0.4,0.4,0.4]]
+    }
+  },
+  {
+    "instruction": "Center the ball at x = 0, y = 0 with plate level.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (ball position, m)", "y (ball position, m)", "pitch (plate tilt x-axis, rad)", "roll (plate tilt y-axis, rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "Ball positions (x,y) dominate for balance; tilt angles secondary but necessary for correction.",
+      "trajectory": [[0.2,0.1,0.05,-0.05],[0.1,0.0,0.02,0.0],[0.0,0.0,0.0,0.0]],
+      "weights": [[1.0,1.0,0.6,0.6],[1.0,1.0,0.6,0.6],[1.0,1.0,0.6,0.6]]
+    }
+  },
+  {
+    "instruction": "Move the ball to x = 0.5, y = 0.5 along a diagonal.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (ball position, m)", "y (ball position, m)", "pitch (rad)", "roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "Ball motion along x,y critical (equal weights=1.0); plate tilt moderate importance for control authority.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.25,0.25,0.1,0.1],[0.5,0.5,0.0,0.0]],
+      "weights": [[1.0,1.0,0.7,0.7],[1.0,1.0,0.7,0.7],[1.0,1.0,0.7,0.7]]
+    }
+  },
+  {
+    "instruction": "Tilt plate forward 0.2 rad to roll ball toward x = 0.3.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (m)","y (m)","pitch (rad)","roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "Pitch directly controls x acceleration; hence both get equal weight. Roll/y secondary.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.15,0.0,0.1,0.0],[0.3,0.0,0.2,0.0]],
+      "weights": [[1.0,0.3,1.0,0.5],[1.0,0.3,1.0,0.5],[1.0,0.3,1.0,0.5]]
+    }
+  },
+  {
+    "instruction": "Shift ball backward to x = -0.4 without sideways drift.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (m)","y (m)","pitch (rad)","roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "x and pitch dominate. y small weight ensures lateral stability.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[-0.2,0.0,-0.1,0.0],[-0.4,0.0,-0.2,0.0]],
+      "weights": [[1.0,0.3,1.0,0.3],[1.0,0.3,1.0,0.3],[1.0,0.3,1.0,0.3]]
+    }
+  },
+  {
+    "instruction": "Roll ball left to y = -0.5 while keeping x near zero.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (m)","y (m)","pitch (rad)","roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "y, roll dominate; x small tolerance. Equal emphasis on ball and tilt alignment along y-axis.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,-0.25,0.0,-0.15],[0.0,-0.5,0.0,-0.3]],
+      "weights": [[0.3,1.0,0.5,1.0],[0.3,1.0,0.5,1.0],[0.3,1.0,0.5,1.0]]
+    }
+  },
+  {
+    "instruction": "Center the ball at x = 0, y = 0 with plate level.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (ball position, m)", "y (ball position, m)", "pitch (plate tilt x-axis, rad)", "roll (plate tilt y-axis, rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "Ball positions (x,y) dominate for balance; tilt angles secondary but necessary for correction.",
+      "trajectory": [[0.2,0.1,0.05,-0.05],[0.1,0.0,0.02,0.0],[0.0,0.0,0.0,0.0]],
+      "weights": [[1.0,1.0,0.6,0.6],[1.0,1.0,0.6,0.6],[1.0,1.0,0.6,0.6]]
+    }
+  },
+  {
+    "instruction": "Move the ball to x = 0.5, y = 0.5 along a diagonal.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (ball position, m)", "y (ball position, m)", "pitch (rad)", "roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "Ball motion along x,y critical (equal weights=1.0); plate tilt moderate importance for control authority.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.25,0.25,0.1,0.1],[0.5,0.5,0.0,0.0]],
+      "weights": [[1.0,1.0,0.7,0.7],[1.0,1.0,0.7,0.7],[1.0,1.0,0.7,0.7]]
+    }
+  },
+  {
+    "instruction": "Tilt plate forward 0.2 rad to roll ball toward x = 0.3.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (m)","y (m)","pitch (rad)","roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "Pitch directly controls x acceleration; hence both get equal weight. Roll/y secondary.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.15,0.0,0.1,0.0],[0.3,0.0,0.2,0.0]],
+      "weights": [[1.0,0.3,1.0,0.5],[1.0,0.3,1.0,0.5],[1.0,0.3,1.0,0.5]]
+    }
+  },
+  {
+    "instruction": "Shift ball backward to x = −0.4 without sideways drift.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (m)","y (m)","pitch (rad)","roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "x and pitch dominate. y small weight ensures lateral stability.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[-0.2,0.0,-0.1,0.0],[-0.4,0.0,-0.2,0.0]],
+      "weights": [[1.0,0.3,1.0,0.3],[1.0,0.3,1.0,0.3],[1.0,0.3,1.0,0.3]]
+    }
+  },
+  {
+    "instruction": "Roll ball left to y = −0.5 while keeping x near zero.",
+    "context": {
+      "system": "you are a ball-balancing plate",
+      "states": ["x (m)","y (m)","pitch (rad)","roll (rad)"],
+      "bounds": {"min": [-1,-1,-0.3,-0.3],"max":[1,1,0.3,0.3]}
+    },
+    "output": {
+      "reasoning": "y, roll dominate; x small tolerance. Equal emphasis on ball and tilt alignment along y-axis.",
+      "trajectory": [[0.0,0.0,0.0,0.0],[0.0,-0.25,0.0,-0.15],[0.0,-0.5,0.0,-0.3]],
+      "weights": [[0.3,1.0,0.5,1.0],[0.3,1.0,0.5,1.0],[0.3,1.0,0.5,1.0]]
+    }
+  }
+]
+
+
+
+
+
+

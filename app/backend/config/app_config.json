@@ -1,0 +1,13 @@
+{
+    "environment" : 
+    {
+        "name" : "Lunar_Lander_MPC_Env",
+        "cfg" : "config/lunar_lander_config.json"
+    },
+    "agent" : 
+    {
+        "type" : "ShapedSINDyAgent",
+        "model" : "agents/models/SINDy.txt"
+    },
+    "interpretor" : "GPT_OSS_Model_Tuned"
+}

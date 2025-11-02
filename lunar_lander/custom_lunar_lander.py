@@ -37,8 +37,8 @@ if TYPE_CHECKING:
 FPS = 50
 SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as well
 
-MAIN_ENGINE_POWER = 13.0
-SIDE_ENGINE_POWER = 0.6
+MAIN_ENGINE_POWER = 100
+SIDE_ENGINE_POWER = 20
 
 INITIAL_RANDOM = 1000.0  # Set 1500 to make game harder
 
@@ -56,6 +56,30 @@ MAIN_ENGINE_Y_LOCATION = (
 
 VIEWPORT_W = 600
 VIEWPORT_H = 400
+
+# import matplotlib.pyplot as plt
+
+# coords = [(x / SCALE, y / SCALE) for x, y in LANDER_POLY]
+
+# # Unpack
+# x_vals, y_vals = zip(*coords)
+
+# # Scatter plot
+# plt.scatter(x_vals, y_vals, color='blue', marker='o', label='Data points')
+
+# # Or line plot
+# plt.plot(x_vals, y_vals, color='red', linestyle='--', label='Line connection')
+
+# # Labels and legend
+# plt.title("Scatter and Line Plot of Coordinate Pairs")
+# plt.xlabel("X")
+# plt.ylabel("Y")
+# plt.legend()
+# plt.grid(True)
+
+# plt.show()
+
+
 
 
 class ContactDetector(contactListener):
@@ -336,6 +360,9 @@ class LunarLander(gym.Env, EzPickle):
         self.world.DestroyBody(self.legs[0])
         self.world.DestroyBody(self.legs[1])
 
+    def _randomise_state(self):
+        self.target_state = [self.np_random.uniform(-0.8, 0.8), self.np_random.uniform(-0, 1.2), 0, 0, self.np_random.uniform(-0.2, 0.2), 0]
+
     def reset(
         self,
         *,
@@ -352,7 +379,7 @@ class LunarLander(gym.Env, EzPickle):
         self.world.contactListener_keepref = ContactDetector(self)
         self.world.contactListener = self.world.contactListener_keepref
         self.game_over = False
-        self.prev_shaping = None
+        self.prev_loss = None
 
         W = VIEWPORT_W / SCALE
         H = VIEWPORT_H / SCALE
@@ -404,6 +431,9 @@ class LunarLander(gym.Env, EzPickle):
                 restitution=0.0,
             ),  # 0.99 bouncy
         )
+        print("TW lander mass", self.lander.mass)
+        print("TW lander inertia", self.lander.inertia)
+        print("TW lander height", self.lander.fixtures[0].shape)
         self.lander.color1 = (128, 102, 230)
         self.lander.color2 = (77, 77, 128)
 
@@ -465,7 +495,7 @@ class LunarLander(gym.Env, EzPickle):
         else:
             # Alternatively, you could randomize the target here.
             # For demonstration, we'll stick to the default zero vector.
-            self.target_state = [self.np_random.uniform(-0.9, 0.9), self.np_random.uniform(-0.5, 1.2), 0, 0, self.np_random.uniform(-0.5, 0.5), 0]
+            self._randomise_state()
         if self.render_mode == "human":
             self.render()
         return self.step(np.array([0, 0]) if self.continuous else 0)[0], {}
@@ -492,25 +522,94 @@ class LunarLander(gym.Env, EzPickle):
         while self.particles and (all_particle or self.particles[0].ttl < 0):
             self.world.DestroyBody(self.particles.pop(0))
 
+    # def reward(self, state, target_state=None, weights=None):
+    #     if target_state is None:
+    #         target_state = np.array([0, 0, 0, 0, 0, 0])
+
+    #     if weights is None:
+    #         weights = np.array([-10, -10, -10, -10, -10, -10, 1, 1])
+    #     reward = 0
+    #     # shaping = (
+    #     #     weights[0] * np.sqrt((state[0] - target_state[0])**2 + (state[1] - target_state[1])**2)   # distance from target
+    #     #     + weights[1] * np.sqrt((state[2] - target_state[2])**2 + (state[3] - target_state[3])**2)  # mangitude of velocity
+    #     #     + weights[2] * abs(state[4] - target_state[4])    # angle
+    #     #     + weights[3] * abs(state[5] - target_state[5])    # Angular velocity
+    #     #     + weights[4] * state[6] # Leg 1 contact
+    #     #     + weights[5] * state[7] # Leg 2 contact
+    #     # )  # And ten points for legs contact, the idea is if you
+    #     loss = (
+    #         weights[0] * abs(state[0] - target_state[0])   # distance from target
+    #         + weights[1] * abs(state[1] - target_state[1])   # distance from target
+    #         + weights[2] * abs(state[2] - target_state[2])  # mangitude of velocity
+    #         + weights[2] * abs(state[3] - target_state[3])  # mangitude of velocity
+    #         + weights[3] * abs(state[4] - target_state[4])    # angle
+    #         + weights[4] * abs(state[5] - target_state[5])    # Angular velocity
+    #         + weights[5] * state[6] # Leg 1 contact
+    #         + weights[6] * state[7] # Leg 2 contact
+    #     ) # And ten points for legs contact, the idea is if you
+    #     # lose contact again after landing, you get negative reward
+    #     if self.prev_loss is not None:
+    #         reward = loss #- self.prev_loss
+    #     self.prev_loss = loss
+
+    #     reward -= (
+    #         self.m_power * 0.30
+    #     )  # less fuel spent is better, about -30 for heuristic landing
+    #     reward -= self.s_power * 0.30
+
+    #     terminated = False
+    #     if self.game_over or abs(state[0]) >= 1.0 or abs(state[1]) >= 2:
+    #         terminated = True
+    #         reward = -2000
+    #     if loss > -1:
+    #         # Consider this complete, move on to next target
+    #         self._randomise_state()
+    #         reward += 1000
+    #     if loss > -1.5:
+    #         # Give some intermediate reward
+    #         reward += 300
+    #     if loss > -2:
+    #         # Give some intermediate reward
+    #         # self._randomise_state()
+    #         reward += 100
+    #     return reward, terminated
+
     def reward(self, state, target_state=None, weights=None):
         if target_state is None:
             target_state = np.array([0, 0, 0, 0, 0, 0])
 
         if weights is None:
-            weights = np.array([-1, -0.6, -1, 0, 0.1, 0.1])
+            # weights = np.array([-10, -10, -10, -10, -10, -10, 1, 1])
+            weights = np.array([-1, -1, -1, -1, -1, -1, 0, 0])
         reward = 0
-        shaping = (
-            weights[0] * np.sqrt((state[0] - target_state[0])**2 + (state[1] - target_state[1])**2)   # distance from target
-            + weights[1] * np.sqrt((state[2] - target_state[2])**2 + (state[3] - target_state[3])**2)  # mangitude of velocity
-            + weights[2] * abs(state[4] - target_state[4])    # angle
-            + weights[3] * abs(state[5] - target_state[5])    # Angular velocity
-            + weights[4] * state[6] # Leg 1 contact
-            + weights[5] * state[7] # Leg 2 contact
-        )  # And ten points for legs contact, the idea is if you
+        # shaping = (
+        #     weights[0] * np.sqrt((state[0] - target_state[0])**2 + (state[1] - target_state[1])**2)   # distance from target
+        #     + weights[1] * np.sqrt((state[2] - target_state[2])**2 + (state[3] - target_state[3])**2)  # mangitude of velocity
+        #     + weights[2] * abs(state[4] - target_state[4])    # angle
+        #     + weights[3] * abs(state[5] - target_state[5])    # Angular velocity
+        #     + weights[4] * state[6] # Leg 1 contact
+        #     + weights[5] * state[7] # Leg 2 contact
+        # )  # And ten points for legs contact, the idea is if you
+        # loss = (
+        #     weights[0] * abs(state[0] - target_state[0])   # distance from target
+        #     + weights[1] * abs(state[1] - target_state[1])   # distance from target
+        #     + weights[2] * abs(state[2] - target_state[2])  # mangitude of velocity
+        #     + weights[2] * abs(state[3] - target_state[3])  # mangitude of velocity
+        #     + weights[3] * abs(state[4] - target_state[4])    # angle
+        #     + weights[4] * abs(state[5] - target_state[5])    # Angular velocity
+        #     + weights[5] * state[6] # Leg 1 contact
+        #     + weights[6] * state[7] # Leg 2 contact
+        # ) # And ten points for legs contact, the idea is if you
+        loss = -(
+            np.sqrt((state[0] - target_state[0]) ** 2 + (state[1] - target_state[1]) ** 2  + (state[2] - target_state[2]) ** 2 + (state[3] - target_state[3]) ** 2 + (state[4] - target_state[4]) ** 2  + (state[5] - target_state[5]) ** 2)
+        ) # And ten points for legs contact, the idea is if you
+        loss = -(
+            np.sqrt((state[0] - target_state[0]) ** 2 + (state[1] - target_state[1]) ** 2 + (state[4] - target_state[4]) ** 2)
+        )
         # lose contact again after landing, you get negative reward
-        if self.prev_shaping is not None:
-            reward = shaping # - self.prev_shaping
-        self.prev_shaping = shaping
+        if self.prev_loss is not None:
+            reward = loss #+ 0.99 * loss - self.prev_loss #- self.prev_loss
+        self.prev_loss = loss
 
         # reward -= (
         #     self.m_power * 0.30
@@ -520,11 +619,23 @@ class LunarLander(gym.Env, EzPickle):
         terminated = False
         if self.game_over or abs(state[0]) >= 1.0 or abs(state[1]) >= 2:
             terminated = True
-            reward = -100
-        if not self.lander.awake:
+            reward = -2000
+        if loss > -0.05:
+            # Consider this complete, move on to next target
             terminated = True
-            reward = +100
+            reward += 1000
+        if loss > -0.1:
+            # Give some intermediate reward
+            reward += 2
+        # if loss > -0.2:
+        #     # Give some intermediate reward
+        #     reward += 1
+        # if loss > -2:
+        #     # Give some intermediate reward
+        #     # self._randomise_state()
+        #     reward += 100
         return reward, terminated
+
 
     def step(self, action):
         assert self.lander is not None
@@ -590,6 +701,7 @@ class LunarLander(gym.Env, EzPickle):
             if self.continuous:
                 self.m_power = (np.clip(action[0], 0.0, 1.0) + 1.0) * 0.5  # 0.5..1.0
                 assert self.m_power >= 0.5 and self.m_power <= 1.0
+                self.m_power = np.clip(action[0], 0.0, 1.0)
             else:
                 self.m_power = 1.0
 
@@ -613,7 +725,7 @@ class LunarLander(gym.Env, EzPickle):
                     impulse_pos[1],
                     self.m_power,
                 )
-                p.ApplyLinearImpulse(
+                p.ApplyForce(
                     (
                         ox * MAIN_ENGINE_POWER * self.m_power,
                         oy * MAIN_ENGINE_POWER * self.m_power,
@@ -621,14 +733,14 @@ class LunarLander(gym.Env, EzPickle):
                     impulse_pos,
                     True,
                 )
-            self.lander.ApplyLinearImpulse(
-                (-ox * MAIN_ENGINE_POWER * self.m_power, -oy * MAIN_ENGINE_POWER * self.m_power),
+            self.lander.ApplyForce(
+                (-tip[0] * MAIN_ENGINE_POWER * self.m_power, tip[1] * MAIN_ENGINE_POWER * self.m_power),
                 impulse_pos,
                 True,
             )
 
         self.s_power = 0.0
-        if (self.continuous and np.abs(action[1]) > 0.5) or (
+        if (self.continuous and np.abs(action[1]) > 0) or (
             not self.continuous and action in [1, 3]
         ):
             # Orientation/Side engines
@@ -636,6 +748,7 @@ class LunarLander(gym.Env, EzPickle):
                 direction = np.sign(action[1])
                 self.s_power = np.clip(np.abs(action[1]), 0.5, 1.0)
                 assert self.s_power >= 0.5 and self.s_power <= 1.0
+                np.clip(np.abs(action[1]), 0, 1)
             else:
                 # action = 1 is left, action = 3 is right
                 direction = action - 2
@@ -654,13 +767,13 @@ class LunarLander(gym.Env, EzPickle):
             # This causes the position of the thrust on the body of the lander to change, depending on the orientation of the lander.
             # This in turn results in an orientation dependent torque being applied to the lander.
             impulse_pos = (
-                self.lander.position[0] + ox - tip[0] * 17 / SCALE,
+                self.lander.position[0] + ox - tip[0] * SIDE_ENGINE_HEIGHT / SCALE,
                 self.lander.position[1] + oy + tip[1] * SIDE_ENGINE_HEIGHT / SCALE,
             )
             if self.render_mode is not None:
                 # particles are just a decoration, with no impact on the physics, so don't add them when not rendering
                 p = self._create_particle(0.7, impulse_pos[0], impulse_pos[1], self.s_power)
-                p.ApplyLinearImpulse(
+                p.ApplyForce(
                     (
                         ox * SIDE_ENGINE_POWER * self.s_power,
                         oy * SIDE_ENGINE_POWER * self.s_power,
@@ -668,8 +781,8 @@ class LunarLander(gym.Env, EzPickle):
                     impulse_pos,
                     True,
                 )
-            self.lander.ApplyLinearImpulse(
-                (-ox * SIDE_ENGINE_POWER * self.s_power, -oy * SIDE_ENGINE_POWER * self.s_power),
+            self.lander.ApplyForce(
+                (-direction * side[0] * SIDE_ENGINE_POWER * self.s_power, direction * side[1] * SIDE_ENGINE_POWER * self.s_power),
                 impulse_pos,
                 True,
             )
@@ -801,16 +914,17 @@ class LunarLander(gym.Env, EzPickle):
                     )
 
         self.surf = pygame.transform.flip(self.surf, False, True)
-        state_string = np.array2string(self.target_state,
-                           precision=2,        # number of decimals
-                           separator=', ',     # separator character
-                           floatmode='fixed')  # use fixed-point notation
+        if self.target_state is not None:
+            state_string = np.array2string(self.target_state,
+                            precision=2,        # number of decimals
+                            separator=', ',     # separator character
+                            floatmode='fixed')  # use fixed-point notation
 
-        pygame.font.init()
-        self.font = pygame.font.SysFont("Arial", 15)
+            pygame.font.init()
+            self.font = pygame.font.SysFont("Arial", 15)
 
-        text_surface = self.font.render(f"Target State: {state_string}", True, (255, 255, 255))  # white text
-        self.surf.blit(text_surface, (20, 20))
+            text_surface = self.font.render(f"Target State: {state_string}", True, (255, 255, 255))  # white text
+            self.surf.blit(text_surface, (20, 20))
 
         state_string = np.array2string(self.state,
                     precision=2,        # number of decimals
@@ -842,6 +956,9 @@ class LunarLander(gym.Env, EzPickle):
             pygame.quit()
             self.isopen = False
 
+
+    def set_target_state(self, target):
+        self.target_state = target
 
 def heuristic(env, s):
     """
@@ -935,13 +1052,13 @@ register(
     id="CustomLunarLander-v0",
     entry_point="custom_lunar_lander:LunarLander",
     max_episode_steps=1000,
-    reward_threshold=200.0,
+    reward_threshold=-0.05,
     kwargs={
         "render_mode": None,
         "continuous": False,
-        "gravity": -10.0,
+        "gravity": -10,
         "enable_wind": False,
-        "wind_power": 15.0,
+        "wind_power": 2.0,
         "turbulence_power": 1.5,
     },
     nondeterministic=False,

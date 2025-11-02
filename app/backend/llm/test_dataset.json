@@ -1,0 +1,132 @@
+[
+{
+  "instruction": "Swing the pendulum upright and balance it at the top.",
+  "context": {
+    "system": "you are a pendulum controller seeking upright stability",
+    "states": ["angle (rad)", "angular position y (m)", "angle error (rad)"],
+    "bounds": {"min": [-3.14, -1.0, -3.14], "max": [3.14, 1.0, 3.14]}
+  },
+  "output": {
+    "reasoning": "The goal is to move the pendulum from the hanging position to upright (angle≈0). Intermediate states show the swing-up followed by small oscillations damped out near zero.",
+    "trajectory": [[-3.14, 0.0, 3.14], [-1.5, 0.4, 1.5], [-0.5, 0.8, 0.5], [0.0, 1.0, 0.0]],
+    "weights": [[0.6, 0.2, 0.2], [0.8, 0.1, 0.1], [0.9, 0.05, 0.05], [1.0, 0.0, 0.0]]
+  }
+},
+{
+  "instruction": "Move the cart to x = 1.0 while keeping the pole balanced vertically.",
+  "context": {
+    "system": "you are a continuous cartpole balancing system",
+    "states": ["cart position x (m)", "pole angle (rad)"],
+    "bounds": {"min": [-2.4, -0.2], "max": [2.4, 0.2]}
+  },
+  "output": {
+    "reasoning": "The controller should translate the cart rightward without letting the pole deviate from upright. Small angular oscillations are allowed but damped quickly.",
+    "trajectory": [[0.0, 0.0], [0.5, 0.05], [1.0, 0.0]],
+    "weights": [[1.0, 0.8], [1.0, 0.9], [1.0, 1.0]]
+  }
+},
+{
+  "instruction": "Reach the target at (x = 0.3, y = 0.4) with the robotic arm.",
+  "context": {
+    "system": "you are a 2-joint planar reacher robot",
+    "states": ["joint1 angle (rad)", "joint2 angle (rad)", "end-effector x (m)", "end-effector y (m)"],
+    "bounds": {"min": [-3.14, -3.14, -0.5, -0.5], "max": [3.14, 3.14, 0.5, 0.5]}
+  },
+  "output": {
+    "reasoning": "To reach (0.3,0.4), the arm must extend both joints forward. We weight end-effector coordinates highest since accuracy there matters most.",
+    "trajectory": [[0.0, 0.0, 0.0, 0.0], [1.0, 0.8, 0.3, 0.4]],
+    "weights": [[0.2, 0.2, 0.8, 0.8], [0.1, 0.1, 1.0, 1.0]]
+  }
+},
+{
+  "instruction": "Walk forward 2 meters at a steady pace without falling.",
+  "context": {
+    "system": "you are a 2D biped walker maintaining balance",
+    "states": ["hip angle (rad)", "knee angle (rad)", "x position (m)", "torso tilt (rad)"],
+    "bounds": {"min": [-1.0, -1.0, 0.0, -0.3], "max": [1.0, 1.0, 2.5, 0.3]}
+  },
+  "output": {
+    "reasoning": "Each stride cycles the hip and knee angles while maintaining torso near 0 tilt. Position increases roughly linearly until 2 m.",
+    "trajectory": [[0.0, 0.0, 0.0, 0.0], [0.5, -0.5, 1.0, 0.05], [-0.5, 0.5, 2.0, -0.05]],
+    "weights": [[0.4, 0.4, 0.8, 0.6], [0.5, 0.5, 0.9, 0.7], [0.5, 0.5, 1.0, 0.8]]
+  }
+},
+{
+  "instruction": "Hover the quadrotor at z = 1.5 m while staying centered at x = 0.",
+  "context": {
+    "system": "you are a quadrotor position controller",
+    "states": ["x (m)", "y (m)", "z (m)", "roll (rad)", "pitch (rad)", "yaw (rad)"],
+    "bounds": {"min": [-2.0, -2.0, 0.0, -0.3, -0.3, -3.14], "max": [2.0, 2.0, 2.0, 0.3, 0.3, 3.14]}
+  },
+  "output": {
+    "reasoning": "Maintain altitude 1.5 m and keep lateral drift near zero with small attitude corrections.",
+    "trajectory": [[0.0, 0.0, 1.2, 0.0, 0.0, 0.0], [0.0, 0.0, 1.5, 0.05, -0.05, 0.0]],
+    "weights": [[0.8, 0.8, 1.0, 0.4, 0.4, 0.3], [0.9, 0.9, 1.0, 0.3, 0.3, 0.3]]
+  }
+},
+{
+  "instruction": "Swing the double pendulum to upright and stabilize both links.",
+  "context": {
+    "system": "you are an inverted double-pendulum controller",
+    "states": ["angle1 (rad)", "angle2 (rad)", "angular velocity1", "angular velocity2"],
+    "bounds": {"min": [-3.14, -3.14, -5.0, -5.0], "max": [3.14, 3.14, 5.0, 5.0]}
+  },
+  "output": {
+    "reasoning": "Sequential energy pumping raises both links to upright. Velocity decays as angles reach 0 rad.",
+    "trajectory": [[-2.0, -2.5, 2.0, 1.5], [-0.8, -0.5, 0.5, 0.3], [0.0, 0.0, 0.0, 0.0]],
+    "weights": [[0.6, 0.6, 0.3, 0.3], [0.8, 0.8, 0.2, 0.2], [1.0, 1.0, 0.1, 0.1]]
+  }
+},
+{
+  "instruction": "Extend the robot arm straight up to grab an object at height = 1.0 m.",
+  "context": {
+    "system": "you are a vertical-plane robotic arm controller",
+    "states": ["joint1 angle (rad)", "joint2 angle (rad)", "end-effector height (m)"],
+    "bounds": {"min": [-1.57, -1.57, 0.0], "max": [1.57, 1.57, 1.2]}
+  },
+  "output": {
+    "reasoning": "Both joints must rotate so the end effector rises to 1 m while staying aligned vertically.",
+    "trajectory": [[0.0, 0.0, 0.6], [0.4, -0.4, 1.0]],
+    "weights": [[0.5, 0.5, 0.9], [0.3, 0.3, 1.0]]
+  }
+},
+{
+  "instruction": "Steer the underwater vehicle to x = 1.0, y = -0.5 at depth = 1.2 m.",
+  "context": {
+    "system": "you are an underwater AUV position controller",
+    "states": ["x (m)", "y (m)", "z (m)", "roll (rad)", "pitch (rad)", "yaw (rad)"],
+    "bounds": {"min": [-2.0, -2.0, 0.0, -0.3, -0.3, -3.14], "max": [2.0, 2.0, 2.0, 0.3, 0.3, 3.14]}
+  },
+  "output": {
+    "reasoning": "Translate diagonally while maintaining level attitude. Yaw aligns with travel direction.",
+    "trajectory": [[0.0, 0.0, 1.0, 0.0, 0.0, 0.0], [1.0, -0.5, 1.2, 0.0, 0.0, -0.5]],
+    "weights": [[0.9, 0.9, 0.8, 0.3, 0.3, 0.5], [1.0, 1.0, 0.9, 0.2, 0.2, 0.6]]
+  }
+},
+{
+  "instruction": "Make the humanoid bend to pick up an item at y = 0.3 m, then return upright.",
+  "context": {
+    "system": "you are a humanoid balance controller",
+    "states": ["torso angle (rad)", "knee angle (rad)", "hand height (m)"],
+    "bounds": {"min": [-1.0, -1.0, 0.0], "max": [1.0, 1.0, 1.5]}
+  },
+  "output": {
+    "reasoning": "Torso leans forward, knees flex, hand lowers to 0.3 m, then reverses to upright. Weight importance shifts from position to stability.",
+    "trajectory": [[0.0, 0.0, 1.0], [0.5, -0.6, 0.3], [0.0, 0.0, 1.0]],
+    "weights": [[0.6, 0.6, 1.0], [0.7, 0.7, 1.0], [0.5, 0.5, 0.8]]
+  }
+},
+{
+  "instruction": "Balance the inverted pendulum on a moving cart after a disturbance.",
+  "context": {
+    "system": "you are an inverted-pendulum recovery controller",
+    "states": ["cart x (m)", "cart velocity (m/s)", "pole angle (rad)", "pole angular velocity (rad/s)"],
+    "bounds": {"min": [-2.0, -2.0, -0.5, -2.0], "max": [2.0, 2.0, 0.5, 2.0]}
+  },
+  "output": {
+    "reasoning": "After a push, move the cart slightly to counteract pole angle. Return to centered position with angle ≈ 0.",
+    "trajectory": [[0.0, 0.5, 0.2, -0.5], [0.2, 0.0, 0.0, 0.0]],
+    "weights": [[0.8, 0.6, 1.0, 0.7], [0.9, 0.6, 1.0, 0.6]]
+  }
+}
+]

@@ -1,0 +1,105 @@
+/* ChatVideoModule.css */
+
+/* Wider container */
+.chat-video-container {
+  width: 1200px;   /* ⬅️ was 800px */
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  color: #333;
+}
+
+/* Input + button row */
+.chat-input-section {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Multiline chat input */
+.chat-input-section textarea {
+  flex: 1;
+  min-width: 400px;
+  min-height: 80px;       /* ⬅️ makes it taller */
+  max-height: 200px;      /* ⬅️ optional limit */
+  padding: 0.9rem 1.2rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  resize: vertical;        /* user can resize height */
+  transition: border-color 0.2s ease;
+}
+
+.chat-input-section textarea:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+
+.chat-input-section button {
+  background: #4a90e2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.chat-input-section button:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.chat-input-section button:hover:not(:disabled) {
+  background: #357ab8;
+}
+
+.response-section {
+  margin-bottom: 1.2rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  /* border-left: 4px solid #4a90e2; */
+  border-radius: 6px;
+}
+
+.response-section p {
+  margin: 0.4rem 0;
+}
+
+.waiting {
+  font-weight: bold;
+  color: #ff9800;
+  margin-bottom: 1.2rem;
+}
+
+.video-section {
+  margin: 1.2rem 0;
+  text-align: center;
+}
+
+.video-section video {
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.reset-button {
+  margin-top: 1rem;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reset-button:hover {
+  background: #c0392b;
+}

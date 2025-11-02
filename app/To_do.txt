@@ -1,0 +1,13 @@
+1. Write testing code to automatically get graphs and states
+    - LLM: 
+        - Use hard coded known truth commands and their expected final states
+        - Check distance / error between trajectory and expected trajectory
+        - May need to dis
+
+1. Interpolation letting us down
+    - Change the trajectory based off performance
+
+2. Training dataset
+    - Trajectory 
+    - Some form of input prompt -> measure the result as to how good it is
+    - Collute with weights 
