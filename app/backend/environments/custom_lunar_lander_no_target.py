@@ -375,7 +375,7 @@ class LunarLander(gym.Env, EzPickle):
 
         # Create Terrain
         CHUNKS = 11
-        height = self.np_random.uniform(0, H / 2, size=(CHUNKS + 1,))
+        height = self.np_random.uniform(0, H / 4, size=(CHUNKS + 1,))
         chunk_x = [W / (CHUNKS - 1) * i for i in range(CHUNKS)]
         self.helipad_x1 = chunk_x[CHUNKS // 2 - 1]
         self.helipad_x2 = chunk_x[CHUNKS // 2 + 1]
@@ -940,7 +940,7 @@ class LunarLander(gym.Env, EzPickle):
             text_surface = self.font.render(f"Target State: {state_string}", True, (255, 255, 255))  # white text
             self.surf.blit(text_surface, (20, 20))
 
-        state_string = np.array2string(self.state,
+        state_string = np.array2string(self.state[[0,1,4]],
                     precision=2,        # number of decimals
                     separator=', ',     # separator character
                     floatmode='fixed')  # use fixed-point notation

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import api from "../api";
 import "../css/ChatVideoModule.css";
+import EnvImage from "../assets/Env.png"
 
 const STATES = {
     IDLE: "idle",
@@ -73,6 +74,13 @@ function ChatVideoModule() {
                     Send
                 </button>
             </div>
+
+            {(state === STATES.IDLE || state === STATES.WAITING_RESPONSE) && (
+                <div className="env-container">
+                <p>Environment dimensions</p>
+                <img src={EnvImage} alt="Environment" />
+                </div>
+            )}
 
             {state === STATES.WAITING_RESPONSE && (
                 <div className="waiting">Waiting for trajectory...</div>
