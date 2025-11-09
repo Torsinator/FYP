@@ -62,6 +62,7 @@ STRICT OUTPUT SPEC (MUST FOLLOW EXACTLY)
      - A 2D JSON array of floats with **exactly the same shape** as `<trajectory>`.
      - Every element must be in range [0.0, 1.0].
      - Weights are the importance per state variable in the target state not the state itself. These can change at different target states.
+     - The current state does not influence future weights
      - No extra text or formatting.
 
 VALIDATION STEPS (you must perform these checks before returning)

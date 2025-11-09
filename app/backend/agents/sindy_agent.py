@@ -25,6 +25,10 @@ def create_lander_model(rhs_exprs):
     u0 = model.set_variable('_u', 'u0')
     u1 = model.set_variable('_u', 'u1')
 
+    # Add dynamic parameters for target and weights
+    target = model.set_variable('_p', 'target', shape=(3, 1))
+    weights = model.set_variable('_p', 'weights', shape=(3, 1))
+
     for i in range(len(rhs_exprs)):
         print(rhs_exprs[i])
         model.set_rhs(f'x{i}', eval(rhs_exprs[i]))
